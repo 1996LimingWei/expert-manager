@@ -38,12 +38,6 @@ CREATE TABLE public.profiles (
 -- ============================================
 CREATE TABLE public.experts (
     id uuid NOT NULL PRIMARY KEY DEFAULT gen_random_uuid(),
-    term_dates text,
-    term_dates_en text,
-    certificate_date date,
-    term_time text,
-    session_number text,
-    session_number_en text,
     certificate_no text,
     committee_position text,
     committee_position_en text,
@@ -63,7 +57,6 @@ CREATE TABLE public.experts (
     professional_title_en text,
     nationality_cn text,
     nationality_en text,
-    photo_url text,
     phone text,
     email text,
     wechat text,
@@ -144,7 +137,7 @@ CREATE TRIGGER on_auth_user_created
 -- 6. 初始超级管理员
 -- ============================================
 INSERT INTO public.allowed_emails (email, role, note)
-VALUES ('120@39fengliao.com', 'superadmin', '初始超级管理员'),
+VALUES ('120@39fengliao.com', 'admin', '普通管理员'),
        ('demo@demo.com', 'superadmin', '开发测试账号');
 
 -- ============================================

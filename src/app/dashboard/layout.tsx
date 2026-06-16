@@ -34,6 +34,7 @@ import {
     ChevronRight,
     Home,
     Pencil,
+    KeyRound,
 } from 'lucide-react';
 import Image from 'next/image';
 import { cn } from '@/lib/utils';
@@ -58,6 +59,13 @@ export default function DashboardLayout({
     const [editNameOpen, setEditNameOpen] = useState(false);
     const [newDisplayName, setNewDisplayName] = useState('');
     const [savingName, setSavingName] = useState(false);
+
+    // 修改密码状态
+    const [editPasswordOpen, setEditPasswordOpen] = useState(false);
+    const [currentPassword, setCurrentPassword] = useState('');
+    const [newPassword, setNewPassword] = useState('');
+    const [confirmNewPassword, setConfirmNewPassword] = useState('');
+    const [savingPassword, setSavingPassword] = useState(false);
 
     useEffect(() => {
         async function loadProfile() {
@@ -110,6 +118,50 @@ export default function DashboardLayout({
             toast.error('更新失败');
         } finally {
             setSavingName(false);
+        }
+    };
+
+    const handleSavePassword = async () => {
+        if (!currentPassword || !newPassword || !confirmNewPassword) {
+            toast.error('请填写所有密码字段');
+            return;
+        }
+        if (newPassword.length < 6) {
+            toast.error('新密码至少6位');
+            return;
+        }
+        if (newPassword !== confirmNewPassword) {
+            toast.error('两次输入的新密码不一致');
+            return;
+        }
+
+        setSavingPassword(true);
+        try {
+            // 先验证旧密码
+            const { error: signInError } = await supabase.auth.signInWithPassword({
+                email: profile!.email!,
+                password: currentPassword,
+            });
+            if (signInError) {
+                toast.error('当前密码不正确');
+                return;
+            }
+
+            // 更新新密码
+            const { error: updateError } = await supabase.auth.updateUser({
+                password: newPassword,
+            });
+            if (updateError) throw updateError;
+
+            toast.success('密码已更新');
+            setEditPasswordOpen(false);
+            setCurrentPassword('');
+            setNewPassword('');
+            setConfirmNewPassword('');
+        } catch {
+            toast.error('修改密码失败');
+        } finally {
+            setSavingPassword(false);
         }
     };
 
@@ -270,6 +322,18 @@ export default function DashboardLayout({
                                         <Pencil className="mr-2 h-4 w-4" />
                                         修改用户名
                                     </DropdownMenuItem>
+                                    <DropdownMenuItem
+                                        onClick={() => {
+                                            setCurrentPassword('');
+                                            setNewPassword('');
+                                            setConfirmNewPassword('');
+                                            setEditPasswordOpen(true);
+                                        }}
+                                        className="cursor-pointer"
+                                    >
+                                        <KeyRound className="mr-2 h-4 w-4" />
+                                        修改密码
+                                    </DropdownMenuItem>
                                     <DropdownMenuItem onClick={handleSignOut} className="text-red-600 cursor-pointer">
                                         <LogOut className="mr-2 h-4 w-4" />
                                         登出
@@ -304,6 +368,43 @@ export default function DashboardLayout({
                             <Button variant="outline" onClick={() => setEditNameOpen(false)}>取消</Button>
                             <Button onClick={handleSaveName} disabled={savingName}>
                                 {savingName ? '保存中...' : '保存'}
+                            </Button>
+                        </div>
+                    </div>
+                </DialogContent>
+            </Dialog>
+
+            {/* 修改密码 Dialog */}
+            <Dialog open={editPasswordOpen} onOpenChange={setEditPasswordOpen}>
+                <DialogContent>
+                    <DialogHeader>
+                        <DialogTitle>修改密码</DialogTitle>
+                        <DialogDescription>输入当前密码和新密码</DialogDescription>
+                    </DialogHeader>
+                    <div className="space-y-4 pt-2">
+                        <Input
+                            type="password"
+                            value={currentPassword}
+                            onChange={(e) => setCurrentPassword(e.target.value)}
+                            placeholder="当前密码"
+                        />
+                        <Input
+                            type="password"
+                            value={newPassword}
+                            onChange={(e) => setNewPassword(e.target.value)}
+                            placeholder="新密码（至少6位）"
+                        />
+                        <Input
+                            type="password"
+                            value={confirmNewPassword}
+                            onChange={(e) => setConfirmNewPassword(e.target.value)}
+                            placeholder="确认新密码"
+                            onKeyDown={(e) => e.key === 'Enter' && handleSavePassword()}
+                        />
+                        <div className="flex justify-end gap-2">
+                            <Button variant="outline" onClick={() => setEditPasswordOpen(false)}>取消</Button>
+                            <Button onClick={handleSavePassword} disabled={savingPassword}>
+                                {savingPassword ? '保存中...' : '保存'}
                             </Button>
                         </div>
                     </div>

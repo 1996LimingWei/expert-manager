@@ -38,12 +38,6 @@ const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
 
 // Excel 列名到数据库字段名的映射
 const columnMapping: Record<string, keyof typeof sampleData> = {
-  '起止日期': 'term_dates',
-  '起止日期英文': 'term_dates_en',
-  '证书日期': 'certificate_date',
-  '时间': 'term_time',
-  '届数': 'session_number',
-  '届数英文': 'session_number_en',
   '证书编号': 'certificate_no',
   '会内职务': 'committee_position',
   'Title_in_Committee': 'committee_position_en',
@@ -63,7 +57,6 @@ const columnMapping: Record<string, keyof typeof sampleData> = {
   '职称英文/PROFESSIONAL TITLE': 'professional_title_en',
   '国籍': 'nationality_cn',
   'Country': 'nationality_en',
-  '照片': 'photo_url',
   '电话': 'phone',
   '邮箱': 'email',
   '微信': 'wechat',
@@ -79,12 +72,6 @@ const columnMapping: Record<string, keyof typeof sampleData> = {
 };
 
 const sampleData = {
-  term_dates: null as string | null,
-  term_dates_en: null as string | null,
-  certificate_date: null as string | null,
-  term_time: null as string | null,
-  session_number: null as string | null,
-  session_number_en: null as string | null,
   certificate_no: null as string | null,
   committee_position: null as string | null,
   committee_position_en: null as string | null,
@@ -104,7 +91,6 @@ const sampleData = {
   professional_title_en: null as string | null,
   nationality_cn: null as string | null,
   nationality_en: null as string | null,
-  photo_url: null as string | null,
   phone: null as string | null,
   email: null as string | null,
   wechat: null as string | null,
@@ -220,7 +206,7 @@ async function main() {
       for (const [excelCol, dbCol] of Object.entries(columnMapping)) {
         const value = row[excelCol];
 
-        if (dbCol.includes('date') || dbCol.includes('expiry') || dbCol === 'join_date' || dbCol === 'certificate_date') {
+        if (dbCol.includes('date') || dbCol.includes('expiry') || dbCol === 'join_date') {
           record[dbCol] = formatDate(value);
         } else if (dbCol === 'phone') {
           // 电话号码保持为字符串

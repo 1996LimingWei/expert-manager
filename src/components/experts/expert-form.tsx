@@ -17,12 +17,6 @@ interface ExpertFormProps {
 }
 
 const emptyForm: ExpertFormData = {
-  term_dates: null,
-  term_dates_en: null,
-  certificate_date: null,
-  term_time: null,
-  session_number: null,
-  session_number_en: null,
   certificate_no: null,
   committee_position: null,
   committee_position_en: null,
@@ -42,7 +36,6 @@ const emptyForm: ExpertFormData = {
   professional_title_en: null,
   nationality_cn: null,
   nationality_en: null,
-  photo_url: null,
   phone: null,
   email: null,
   wechat: null,
@@ -106,9 +99,9 @@ export function ExpertForm({ expert, onSave, onCancel }: ExpertFormProps) {
             </FormField>
             <FormField label="出生年月">
               <Input
+                type="date"
                 value={formData.birth_date ?? ''}
                 onChange={(e) => updateField('birth_date', e.target.value)}
-                placeholder="如: 1980-01"
               />
             </FormField>
             <FormField label="国籍">
@@ -198,43 +191,6 @@ export function ExpertForm({ expert, onSave, onCancel }: ExpertFormProps) {
                 onChange={(e) => updateField('certificate_no', e.target.value)}
               />
             </FormField>
-            <FormField label="证书日期">
-              <Input
-                type="date"
-                value={formData.certificate_date ?? ''}
-                onChange={(e) => updateField('certificate_date', e.target.value)}
-              />
-            </FormField>
-            <FormField label="届数">
-              <Input
-                value={formData.session_number ?? ''}
-                onChange={(e) => updateField('session_number', e.target.value)}
-              />
-            </FormField>
-            <FormField label="届数英文">
-              <Input
-                value={formData.session_number_en ?? ''}
-                onChange={(e) => updateField('session_number_en', e.target.value)}
-              />
-            </FormField>
-            <FormField label="起止日期">
-              <Input
-                value={formData.term_dates ?? ''}
-                onChange={(e) => updateField('term_dates', e.target.value)}
-              />
-            </FormField>
-            <FormField label="起止日期英文">
-              <Input
-                value={formData.term_dates_en ?? ''}
-                onChange={(e) => updateField('term_dates_en', e.target.value)}
-              />
-            </FormField>
-            <FormField label="时间">
-              <Input
-                value={formData.term_time ?? ''}
-                onChange={(e) => updateField('term_time', e.target.value)}
-              />
-            </FormField>
           </div>
 
           <Separator />
@@ -300,13 +256,6 @@ export function ExpertForm({ expert, onSave, onCancel }: ExpertFormProps) {
                 onChange={(e) => updateField('wechat', e.target.value)}
               />
             </FormField>
-            <FormField label="照片链接">
-              <Input
-                value={formData.photo_url ?? ''}
-                onChange={(e) => updateField('photo_url', e.target.value)}
-                placeholder="https://..."
-              />
-            </FormField>
             <FormField label="入会时间">
               <Input
                 type="date"
@@ -320,7 +269,6 @@ export function ExpertForm({ expert, onSave, onCancel }: ExpertFormProps) {
         {/* 缴费信息 */}
         <TabsContent value="payment" className="space-y-4 mt-4">
           <div className="space-y-4">
-            <h3 className="text-sm font-medium text-slate-700">第一届</h3>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <FormField label="缴费日期">
                 <Input

@@ -9,7 +9,7 @@ import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { toast } from 'sonner';
-import { Loader2, Mail, Lock, ArrowRight } from 'lucide-react';
+import { Loader2, Mail, Lock, ArrowRight, KeyRound } from 'lucide-react';
 import Image from 'next/image';
 
 export default function LoginPage() {
@@ -28,6 +28,39 @@ export default function LoginPage() {
     const [otp, setOtp] = useState('');
     const [registerLoading, setRegisterLoading] = useState(false);
     const [registerStep, setRegisterStep] = useState<'info' | 'otp' | 'success'>('info');
+
+    // 忘记密码状态
+    const [showForgotPassword, setShowForgotPassword] = useState(false);
+    const [forgotEmail, setForgotEmail] = useState('');
+    const [forgotLoading, setForgotLoading] = useState(false);
+    const [forgotSent, setForgotSent] = useState(false);
+
+    // 忘记密码 - 发送重置密码邮件
+    const handleForgotPassword = async (e: React.FormEvent) => {
+        e.preventDefault();
+        if (!forgotEmail) {
+            toast.error('请填写邮箱地址');
+            return;
+        }
+
+        setForgotLoading(true);
+        try {
+            const { error } = await supabase.auth.resetPasswordForEmail(
+                forgotEmail.toLowerCase().trim(),
+                {
+                    redirectTo: `${window.location.origin}/reset-password`,
+                }
+            );
+            if (error) throw error;
+            setForgotSent(true);
+            toast.success('重置密码邮件已发送');
+        } catch (error: unknown) {
+            const err = error as { message?: string };
+            toast.error(err.message || '发送失败，请重试');
+        } finally {
+            setForgotLoading(false);
+        }
+    };
 
     // 邮箱+密码登录
     const handleLogin = async (e: React.FormEvent) => {
@@ -190,58 +223,142 @@ export default function LoginPage() {
                             </TabsList>
                         </CardHeader>
 
+                        {/* 忘记密码 */}
                         <TabsContent value="login">
-                            <form onSubmit={handleLogin}>
-                                <CardContent className="space-y-4">
-                                    <div className="space-y-2">
-                                        <Label htmlFor="login-email" className="text-slate-300">邮箱地址</Label>
-                                        <div className="relative">
-                                            <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
-                                            <Input
-                                                id="login-email"
-                                                type="email"
-                                                placeholder="your@email.com"
-                                                value={loginEmail}
-                                                onChange={(e) => setLoginEmail(e.target.value)}
-                                                className="pl-10 bg-white/5 border-white/10 text-white placeholder:text-slate-500 focus:border-blue-500 focus:ring-blue-500/20"
-                                            />
+                            {!showForgotPassword ? (
+                                <form onSubmit={handleLogin}>
+                                    <CardContent className="space-y-4">
+                                        <div className="space-y-2">
+                                            <Label htmlFor="login-email" className="text-slate-300">邮箱地址</Label>
+                                            <div className="relative">
+                                                <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
+                                                <Input
+                                                    id="login-email"
+                                                    type="email"
+                                                    placeholder="your@email.com"
+                                                    value={loginEmail}
+                                                    onChange={(e) => setLoginEmail(e.target.value)}
+                                                    className="pl-10 bg-white/5 border-white/10 text-white placeholder:text-slate-500 focus:border-blue-500 focus:ring-blue-500/20"
+                                                />
+                                            </div>
                                         </div>
-                                    </div>
-                                    <div className="space-y-2">
-                                        <Label htmlFor="login-password" className="text-slate-300">密码</Label>
-                                        <div className="relative">
-                                            <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
-                                            <Input
-                                                id="login-password"
-                                                type="password"
-                                                placeholder="••••••••"
-                                                value={loginPassword}
-                                                onChange={(e) => setLoginPassword(e.target.value)}
-                                                className="pl-10 bg-white/5 border-white/10 text-white placeholder:text-slate-500 focus:border-blue-500 focus:ring-blue-500/20"
-                                            />
+                                        <div className="space-y-2">
+                                            <div className="flex items-center justify-between">
+                                                <Label htmlFor="login-password" className="text-slate-300">密码</Label>
+                                                <button
+                                                    type="button"
+                                                    onClick={() => setShowForgotPassword(true)}
+                                                    className="text-xs text-blue-400 hover:text-blue-300 transition-colors"
+                                                >
+                                                    忘记密码？
+                                                </button>
+                                            </div>
+                                            <div className="relative">
+                                                <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
+                                                <Input
+                                                    id="login-password"
+                                                    type="password"
+                                                    placeholder="••••••••"
+                                                    value={loginPassword}
+                                                    onChange={(e) => setLoginPassword(e.target.value)}
+                                                    className="pl-10 bg-white/5 border-white/10 text-white placeholder:text-slate-500 focus:border-blue-500 focus:ring-blue-500/20"
+                                                />
+                                            </div>
                                         </div>
+                                    </CardContent>
+                                    <CardFooter className="bg-transparent border-0">
+                                        <Button
+                                            type="submit"
+                                            className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white shadow-lg shadow-blue-500/30"
+                                            disabled={loginLoading}
+                                        >
+                                            {loginLoading ? (
+                                                <>
+                                                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                                                    登录中...
+                                                </>
+                                            ) : (
+                                                <>
+                                                    登录
+                                                    <ArrowRight className="ml-2 h-4 w-4" />
+                                                </>
+                                            )}
+                                        </Button>
+                                    </CardFooter>
+                                </form>
+                            ) : !forgotSent ? (
+                                <form onSubmit={handleForgotPassword}>
+                                    <CardContent className="space-y-4">
+                                        <div className="flex items-center gap-2 text-blue-400 mb-2">
+                                            <KeyRound className="h-5 w-5" />
+                                            <span className="text-sm font-medium">重置密码</span>
+                                        </div>
+                                        <CardDescription className="text-slate-400">
+                                            输入您的注册邮箱，我们将发送重置密码链接到您的邮箱。
+                                        </CardDescription>
+                                        <div className="space-y-2">
+                                            <Label htmlFor="forgot-email" className="text-slate-300">邮箱地址</Label>
+                                            <div className="relative">
+                                                <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
+                                                <Input
+                                                    id="forgot-email"
+                                                    type="email"
+                                                    placeholder="your@email.com"
+                                                    value={forgotEmail}
+                                                    onChange={(e) => setForgotEmail(e.target.value)}
+                                                    className="pl-10 bg-white/5 border-white/10 text-white placeholder:text-slate-500 focus:border-blue-500 focus:ring-blue-500/20"
+                                                />
+                                            </div>
+                                        </div>
+                                        <button
+                                            type="button"
+                                            onClick={() => { setShowForgotPassword(false); setForgotEmail(''); }}
+                                            className="text-sm text-blue-400 hover:text-blue-300 transition-colors"
+                                        >
+                                            ← 返回登录
+                                        </button>
+                                    </CardContent>
+                                    <CardFooter className="bg-transparent border-0">
+                                        <Button
+                                            type="submit"
+                                            className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white shadow-lg shadow-blue-500/30"
+                                            disabled={forgotLoading}
+                                        >
+                                            {forgotLoading ? (
+                                                <>
+                                                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                                                    发送中...
+                                                </>
+                                            ) : (
+                                                <>
+                                                    发送重置链接
+                                                    <ArrowRight className="ml-2 h-4 w-4" />
+                                                </>
+                                            )}
+                                        </Button>
+                                    </CardFooter>
+                                </form>
+                            ) : (
+                                <div className="py-8 text-center px-6">
+                                    <div className="mx-auto w-16 h-16 bg-green-500/20 rounded-full flex items-center justify-center mb-4">
+                                        <Mail className="w-8 h-8 text-green-400" />
                                     </div>
-                                </CardContent>
-                                <CardFooter className="bg-transparent border-0">
-                                    <Button
-                                        type="submit"
-                                        className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white shadow-lg shadow-blue-500/30"
-                                        disabled={loginLoading}
+                                    <h3 className="text-xl font-semibold text-white mb-2">邮件已发送</h3>
+                                    <p className="text-slate-400 text-sm mb-4">
+                                        重置密码链接已发送至 <span className="text-blue-400">{forgotEmail}</span>，请查看邮箱。
+                                    </p>
+                                    <button
+                                        onClick={() => {
+                                            setShowForgotPassword(false);
+                                            setForgotSent(false);
+                                            setForgotEmail('');
+                                        }}
+                                        className="text-sm text-blue-400 hover:text-blue-300 transition-colors"
                                     >
-                                        {loginLoading ? (
-                                            <>
-                                                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                                                登录中...
-                                            </>
-                                        ) : (
-                                            <>
-                                                登录
-                                                <ArrowRight className="ml-2 h-4 w-4" />
-                                            </>
-                                        )}
-                                    </Button>
-                                </CardFooter>
-                            </form>
+                                        ← 返回登录
+                                    </button>
+                                </div>
+                            )}
                         </TabsContent>
 
                         <TabsContent value="register">

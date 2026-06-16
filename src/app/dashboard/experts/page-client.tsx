@@ -80,12 +80,6 @@ export default function ExpertsPageClient() {
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
   const [globalFilter, setGlobalFilter] = useState('');
   const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({
-    term_dates: false,
-    term_dates_en: false,
-    certificate_date: false,
-    term_time: false,
-    session_number: false,
-    session_number_en: false,
     committee_position_en: false,
     last_name_en: false,
     first_name_en: false,
@@ -105,7 +99,6 @@ export default function ExpertsPageClient() {
     payment_date: false,
     expiry_date: false,
     payment_status: false,
-    photo_url: false,
   });
   const [pageSize, setPageSize] = useState(20);
 
@@ -479,12 +472,6 @@ export default function ExpertsPageClient() {
       pagination: { pageSize: 20 },
       columnVisibility: {
         // 默认隐藏这些列
-        term_dates: false,
-        term_dates_en: false,
-        certificate_date: false,
-        term_time: false,
-        session_number: false,
-        session_number_en: false,
         committee_position_en: false,
         last_name_en: false,
         first_name_en: false,
@@ -504,7 +491,6 @@ export default function ExpertsPageClient() {
         payment_date: false,
         expiry_date: false,
         payment_status: false,
-        photo_url: false,
       },
     },
   });

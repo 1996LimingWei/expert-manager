@@ -1,12 +1,6 @@
 // 专家信息类型定义
 export interface Expert {
     id: string;
-    term_dates: string | null;
-    term_dates_en: string | null;
-    certificate_date: string | null;
-    term_time: string | null;
-    session_number: string | null;
-    session_number_en: string | null;
     certificate_no: string | null;
     committee_position: string | null;
     committee_position_en: string | null;
@@ -26,7 +20,6 @@ export interface Expert {
     professional_title_en: string | null;
     nationality_cn: string | null;
     nationality_en: string | null;
-    photo_url: string | null;
     phone: string | null;
     email: string | null;
     wechat: string | null;
