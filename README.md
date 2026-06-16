@@ -52,8 +52,8 @@ NEXT_PUBLIC_SUPABASE_ANON_KEY=eyJhbGciOi...
 迁移脚本已默认包含 `120@39fengliao.com`（普通管理员），如需超级管理员权限请登录后在用户管理中修改角色，或在 SQL Editor 中执行：
 
 ```sql
-UPDATE public.allowed_emails SET role = 'superadmin' WHERE email = '120@39fengliao.com';
-UPDATE public.profiles SET role = 'superadmin' WHERE email = '120@39fengliao.com';
+UPDATE public.allowed_emails SET role = 'superadmin' WHERE email = 'XXX@XXX.com';
+UPDATE public.profiles SET role = 'superadmin' WHERE email = 'XXX@XXX.com';
 ```
 
 如需添加其他管理员，可在 SQL Editor 中执行：
