@@ -66,6 +66,8 @@ import {
   Loader2,
   AlertCircle,
   Users,
+  CheckCircle2,
+  XCircle,
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { ExpertForm } from '@/components/experts/expert-form';
@@ -119,6 +121,11 @@ export default function ExpertsPageClient() {
   const [uploadDialogOpen, setUploadDialogOpen] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [uploadFile, setUploadFile] = useState<File | null>(null);
+  const [uploadResult, setUploadResult] = useState<{
+    success: { name_cn: string | null; name_en: string | null }[];
+    failed: { name_cn: string | null; name_en: string | null; reason: string }[];
+  } | null>(null);
+  const [uploadResultTab, setUploadResultTab] = useState<'success' | 'failed'>('success');
 
   // 加载数据
   useEffect(() => {
@@ -296,23 +303,66 @@ export default function ExpertsPageClient() {
         return;
       }
 
-      // 过滤掉空对象
-      const valid = records.filter((r) => r.name_cn || r.name_en);
+      // 标准化函数：去空格 + 小写
+      const normalize = (s: string | null | undefined) => (s ? s.trim().toLowerCase() : '');
 
-      // 批量插入
-      const BATCH = 50;
-      let inserted = 0;
-      for (let i = 0; i < valid.length; i += BATCH) {
-        const chunk = valid.slice(i, i + BATCH);
-        const { error } = await supabase.from('experts').insert(chunk);
-        if (error) throw error;
-        inserted += chunk.length;
+      // 从数据库加载现有专家（仅取姓名用于去重）
+      const { data: existingExperts } = await supabase
+        .from('experts').select('name_cn, name_en');
+      const existingSet = new Set<string>();
+      (existingExperts || []).forEach((e: { name_cn: string | null; name_en: string | null }) => {
+        const cn = normalize(e.name_cn);
+        const en = normalize(e.name_en);
+        if (cn) existingSet.add(`cn:${cn}`);
+        if (en) existingSet.add(`en:${en}`);
+      });
+
+      const successList: { name_cn: string | null; name_en: string | null }[] = [];
+      const failedList: { name_cn: string | null; name_en: string | null; reason: string }[] = [];
+      const batchToInsert: Record<string, string | null>[] = [];
+      const newSet = new Set<string>(); // 跟踪本次上传新增的
+
+      for (const rec of records.filter((r) => r.name_cn || r.name_en)) {
+        const cn = normalize(rec.name_cn);
+        const en = normalize(rec.name_en);
+        const reasons: string[] = [];
+
+        // 检查与数据库已有记录重复
+        if (cn && existingSet.has(`cn:${cn}`)) reasons.push('姓名已存在');
+        if (en && existingSet.has(`en:${en}`)) reasons.push('英文姓名已存在');
+        // 检查与本次上传的其他记录重复
+        if (cn && newSet.has(`cn:${cn}`) && !existingSet.has(`cn:${cn}`)) reasons.push('与本次上传数据中的姓名重复');
+        if (en && newSet.has(`en:${en}`) && !existingSet.has(`en:${en}`)) reasons.push('与本次上传数据中的英文姓名重复');
+
+        if (reasons.length > 0) {
+          failedList.push({
+            name_cn: rec.name_cn || null,
+            name_en: rec.name_en || null,
+            reason: reasons.join('；'),
+          });
+        } else {
+          batchToInsert.push(rec);
+          successList.push({ name_cn: rec.name_cn || null, name_en: rec.name_en || null });
+          if (cn) newSet.add(`cn:${cn}`);
+          if (en) newSet.add(`en:${en}`);
+        }
       }
 
-      toast.success(`成功导入 ${inserted} 条专家信息`);
-      setUploadDialogOpen(false);
-      setUploadFile(null);
-      loadExperts();
+      // 批量插入成功记录
+      if (batchToInsert.length > 0) {
+        const BATCH = 50;
+        for (let i = 0; i < batchToInsert.length; i += BATCH) {
+          const chunk = batchToInsert.slice(i, i + BATCH);
+          const { error } = await supabase.from('experts').insert(chunk);
+          if (error) throw error;
+        }
+        loadExperts();
+      }
+
+      // 显示结果
+      setUploadResult({ success: successList, failed: failedList });
+      setUploadResultTab(successList.length > 0 ? 'success' : 'failed');
+      toast.success(`导入完成：成功 ${successList.length} 条，失败 ${failedList.length} 条`);
     } catch (error: unknown) {
       const err = error as { message?: string };
       toast.error('导入失败: ' + (err.message || '未知错误'));
@@ -768,6 +818,93 @@ export default function ExpertsPageClient() {
                 {uploading ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" />导入中...</> : '开始导入'}
               </Button>
             </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* 上传结果 Dialog */}
+      <Dialog open={!!uploadResult} onOpenChange={(open) => {
+        if (!open) { setUploadResult(null); setUploadDialogOpen(false); setUploadFile(null); }
+      }}>
+        <DialogContent className="max-w-md max-h-[80vh] flex flex-col">
+          <DialogHeader>
+            <DialogTitle>导入结果</DialogTitle>
+            <DialogDescription>
+              共 {uploadResult ? uploadResult.success.length + uploadResult.failed.length : 0} 条数据：
+              <span className="text-green-600 font-medium ml-1">成功 {uploadResult?.success.length || 0} 条</span>
+              {uploadResult && uploadResult.failed.length > 0 && (
+                <span className="text-red-600 font-medium ml-2">失败 {uploadResult.failed.length} 条</span>
+              )}
+            </DialogDescription>
+          </DialogHeader>
+
+          {/* Tab 切换 */}
+          <div className="flex gap-1 border-b border-slate-200">
+            <button
+              onClick={() => setUploadResultTab('success')}
+              className={`px-4 py-2 text-sm font-medium border-b-2 transition-colors ${
+                uploadResultTab === 'success'
+                  ? 'border-green-500 text-green-700'
+                  : 'border-transparent text-slate-500 hover:text-slate-700'
+              }`}
+            >
+              <CheckCircle2 className="inline h-4 w-4 mr-1" />
+              成功 ({uploadResult?.success.length || 0})
+            </button>
+            <button
+              onClick={() => setUploadResultTab('failed')}
+              className={`px-4 py-2 text-sm font-medium border-b-2 transition-colors ${
+                uploadResultTab === 'failed'
+                  ? 'border-red-500 text-red-700'
+                  : 'border-transparent text-slate-500 hover:text-slate-700'
+              }`}
+            >
+              <XCircle className="inline h-4 w-4 mr-1" />
+              失败 ({uploadResult?.failed.length || 0})
+            </button>
+          </div>
+
+          {/* 列表 */}
+          <div className="flex-1 overflow-y-auto mt-2">
+            {uploadResultTab === 'success' && (
+              <div className="space-y-1">
+                {uploadResult?.success.length === 0 ? (
+                  <p className="text-sm text-slate-400 text-center py-8">无成功记录</p>
+                ) : (
+                  uploadResult?.success.map((item, i) => (
+                    <div key={i} className="flex items-center gap-3 px-3 py-2 rounded-md bg-green-50 text-sm">
+                      <CheckCircle2 className="h-4 w-4 text-green-500 shrink-0" />
+                      <div className="flex-1 min-w-0">
+                        <span className="font-medium text-slate-900 truncate block">{item.name_cn || '-'}</span>
+                        <span className="text-slate-500 text-xs truncate block">{item.name_en || '-'}</span>
+                      </div>
+                    </div>
+                  ))
+                )}
+              </div>
+            )}
+            {uploadResultTab === 'failed' && (
+              <div className="space-y-1">
+                {uploadResult?.failed.length === 0 ? (
+                  <p className="text-sm text-slate-400 text-center py-8">无失败记录</p>
+                ) : (
+                  uploadResult?.failed.map((item, i) => (
+                    <div key={i} className="flex items-start gap-3 px-3 py-2 rounded-md bg-red-50 text-sm">
+                      <XCircle className="h-4 w-4 text-red-500 shrink-0 mt-0.5" />
+                      <div className="flex-1 min-w-0">
+                        <span className="font-medium text-slate-900 truncate block">{item.name_cn || '-'}</span>
+                        <span className="text-slate-500 text-xs truncate block">{item.name_en || '-'}</span>
+                        <span className="text-red-600 text-xs block mt-1">{item.reason}</span>
+                      </div>
+                    </div>
+                  ))
+                )}
+              </div>
+            )}
+          </div>
+
+          <div className="flex justify-end pt-2">
+            <Button variant="outline" onClick={() => { setUploadResult(null); setUploadDialogOpen(false); setUploadFile(null); }}>关闭</Button>
           </div>
         </DialogContent>
       </Dialog>
