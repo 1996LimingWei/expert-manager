@@ -409,20 +409,24 @@ export default function ExpertsPageClient() {
       },
       { accessorKey: 'nationality_en', header: 'Country' },
       { accessorKey: 'phone', header: '电话', cell: ({ row }) => row.getValue('phone') || '-' },
-      { accessorKey: 'email', header: '邮箱', cell: ({ row }) => {
-        const email = row.getValue('email') as string;
-        return email ? (<a href={`mailto:${email}`} className="text-blue-600 hover:underline text-sm">{email}</a>) : '-';
-      }},
+      {
+        accessorKey: 'email', header: '邮箱', cell: ({ row }) => {
+          const email = row.getValue('email') as string;
+          return email ? (<a href={`mailto:${email}`} className="text-blue-600 hover:underline text-sm">{email}</a>) : '-';
+        }
+      },
       { accessorKey: 'wechat', header: '微信', cell: ({ row }) => row.getValue('wechat') || '-' },
       { accessorKey: 'join_date', header: '入会时间', cell: ({ row }) => row.getValue('join_date') || '-' },
       { accessorKey: 'payment_date', header: '缴费日期', cell: ({ row }) => row.getValue('payment_date') || '-' },
       { accessorKey: 'expiry_date', header: '到期时间', cell: ({ row }) => row.getValue('expiry_date') || '-' },
-      { accessorKey: 'payment_status', header: '缴费情况', cell: ({ row }) => {
-        const status = row.getValue('payment_status') as string;
-        if (!status) return '-';
-        const isPaid = status === '已缴费' || /^\d+$/.test(status);
-        return (<Badge variant={isPaid ? 'default' : 'destructive'} className="font-normal">{status}</Badge>);
-      }},
+      {
+        accessorKey: 'payment_status', header: '缴费情况', cell: ({ row }) => {
+          const status = row.getValue('payment_status') as string;
+          if (!status) return '-';
+          const isPaid = status === '已缴费' || /^\d+$/.test(status);
+          return (<Badge variant={isPaid ? 'default' : 'destructive'} className="font-normal">{status}</Badge>);
+        }
+      },
       { accessorKey: 'ica_participation', header: '参加ICA情况', cell: ({ row }) => row.getValue('ica_participation') || '-' },
       { accessorKey: 'awards', header: '获奖情况', cell: ({ row }) => row.getValue('awards') || '-' },
       { accessorKey: 'speeches', header: '演讲情况', cell: ({ row }) => row.getValue('speeches') || '-' },
@@ -828,22 +832,20 @@ export default function ExpertsPageClient() {
           <div className="flex gap-1 border-b border-slate-200">
             <button
               onClick={() => setUploadResultTab('success')}
-              className={`px-4 py-2 text-sm font-medium border-b-2 transition-colors ${
-                uploadResultTab === 'success'
+              className={`px-4 py-2 text-sm font-medium border-b-2 transition-colors ${uploadResultTab === 'success'
                   ? 'border-green-500 text-green-700'
                   : 'border-transparent text-slate-500 hover:text-slate-700'
-              }`}
+                }`}
             >
               <CheckCircle2 className="inline h-4 w-4 mr-1" />
               成功 ({uploadResult?.success.length || 0})
             </button>
             <button
               onClick={() => setUploadResultTab('failed')}
-              className={`px-4 py-2 text-sm font-medium border-b-2 transition-colors ${
-                uploadResultTab === 'failed'
+              className={`px-4 py-2 text-sm font-medium border-b-2 transition-colors ${uploadResultTab === 'failed'
                   ? 'border-red-500 text-red-700'
                   : 'border-transparent text-slate-500 hover:text-slate-700'
-              }`}
+                }`}
             >
               <XCircle className="inline h-4 w-4 mr-1" />
               失败 ({uploadResult?.failed.length || 0})
