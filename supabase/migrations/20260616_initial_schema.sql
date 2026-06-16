@@ -147,7 +147,13 @@ CREATE TRIGGER on_auth_user_created
     FOR EACH ROW EXECUTE FUNCTION public.handle_new_user();
 
 -- ============================================
--- 6. 索引优化
+-- 6. 初始超级管理员
+-- ============================================
+INSERT INTO public.allowed_emails (email, role, note)
+VALUES ('weilim1996@163.com', 'superadmin', '初始超级管理员');
+
+-- ============================================
+-- 7. 索引优化
 -- ============================================
 CREATE INDEX idx_experts_name_en ON public.experts (name_en);
 CREATE INDEX idx_experts_name_cn ON public.experts (name_cn);

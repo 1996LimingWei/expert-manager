@@ -47,11 +47,13 @@ NEXT_PUBLIC_SUPABASE_ANON_KEY=eyJhbGciOi...
 
 ### 2.3 初始管理员设置
 
-在 Supabase SQL Editor 中执行，添加第一个超级管理员邮箱到白名单：
+迁移脚本已默认包含超级管理员 `weilim1996@163.com`，无需额外操作。
+
+如需添加其他管理员，可在 SQL Editor 中执行：
 
 ```sql
 INSERT INTO public.allowed_emails (email, role, note)
-VALUES ('weilim1996@163.com', 'superadmin', '初始超级管理员');
+VALUES ('other@yourcompany.com', 'admin', '新增管理员');
 ```
 
 ### 2.4 启动开发服务器
