@@ -1,34 +1,230 @@
-## Getting Started
+# 外宾管理系统 - 使用说明
 
-First, run the development server:
+## 一、系统简介
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+外宾管理系统（Expert Management System）是一套面向内部管理人员的专家信息维护平台，用于替代传统 Excel 管理方式，实现对上百位外国专家信息的高效数字化管理。
+
+### 核心功能
+
+| 功能模块 | 说明 |
+|---------|------|
+| 专家信息管理 | 查看、新增、编辑、删除专家信息（含护照号、姓名、邮箱、职位等 44 项字段） |
+| 搜索与筛选 | 全局关键字搜索、列排序、多维度筛选 |
+| 数据导出 | 一键导出 CSV 格式专家名单 |
+| 用户权限管理 | 超级管理员（Superadmin）和管理员（Admin）双角色权限体系 |
+| 邮箱白名单 | 仅预授权的邮箱可注册系统账号 |
+
+### 技术架构
+
+- **前端**：Next.js 16 + React 19 + TypeScript + Tailwind CSS + shadcn/ui
+- **数据库**：Supabase（PostgreSQL）
+- **认证**：邮箱 + 密码登录 / OTP 验证码注册
+- **部署**：支持 Vercel 一键部署
+
+---
+
+## 二、环境配置与部署
+
+### 2.1 前置条件
+
+- Node.js >= 18
+- npm >= 9
+- Supabase 项目（免费创建）
+
+### 2.2 Supabase 配置
+
+1. 登录 [Supabase Dashboard](https://supabase.com/dashboard)，创建或选择项目
+2. 进入 **SQL Editor**，将 `supabase/migrations/20260616_initial_schema.sql` 的全部内容粘贴执行
+3. 进入 **Project Settings > API**，获取：
+   - `Project URL`（项目链接）
+   - `anon public key`（匿名公钥）
+4. 将以上信息填入项目根目录 `.env.local` 文件：
+
+```env
+NEXT_PUBLIC_SUPABASE_URL=https://xxxxx.supabase.co
+NEXT_PUBLIC_SUPABASE_ANON_KEY=eyJhbGciOi...
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+### 2.3 初始管理员设置
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+在 Supabase SQL Editor 中执行，添加第一个超级管理员邮箱到白名单：
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+```sql
+INSERT INTO public.allowed_emails (email, role, note)
+VALUES ('weilim1996@163.com', 'superadmin', '初始超级管理员');
+```
 
-## Learn More
+### 2.4 启动开发服务器
 
-To learn more about Next.js, take a look at the following resources:
+```bash
+cd expert-manager
+npm install
+npm run dev
+```
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+访问 `http://localhost:3000` 即可使用。
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+### 2.5 生产部署
 
-## Deploy on Vercel
+```bash
+npm run build
+npm run start
+```
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+---
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## 三、登录与注册
+
+### 3.1 登录流程
+
+1. 访问系统首页，自动跳转到登录页面
+2. 输入已注册的**邮箱**和**密码**
+3. 点击「登录」按钮
+4. 登录成功后自动跳转到专家列表页面
+
+### 3.2 注册流程（新用户）
+
+1. 在登录页面点击「注册」标签
+2. 输入邮箱地址（**必须在管理员白名单中**）
+3. 系统发送 6 位验证码到邮箱
+4. 输入验证码完成身份验证
+5. 设置登录密码（至少 6 位）
+6. 注册完成，自动进入系统
+
+> **注意**：如果邮箱不在白名单中，注册将失败。请联系管理员添加您的邮箱。
+
+---
+
+## 四、功能操作指南
+
+### 4.1 专家列表
+
+登录后默认进入专家列表页面，展示所有专家信息。
+
+#### 搜索
+
+在顶部搜索框中输入关键字，系统将在所有列中模糊匹配，支持搜索：
+- 姓名（中英文）
+- 邮箱
+- 单位
+- 国籍
+- 证书编号等
+
+#### 排序
+
+点击表头列名可按该列升序/降序排列，支持排序的列包括：
+- 序号
+- 英文姓名
+- 国籍
+
+#### 分页
+
+- 默认每页显示 20 条
+- 可切换为 10/20/50/100 条每页
+- 使用底部翻页按钮导航
+
+#### 显示列控制
+
+点击「显示列」按钮，可勾选/取消需要展示的列，自定义表格视图。
+
+### 4.2 查看专家详情
+
+点击表格中任意一行，弹出详情对话框，展示该专家的完整信息。
+
+### 4.3 添加专家
+
+1. 点击右上角「添加专家」按钮
+2. 在弹出的表单中填写专家信息
+3. 表单分为四个标签页：
+   - **基本信息**：姓名、性别、国籍等
+   - **委员会信息**：职务、证书编号、单位等
+   - **联系方式**：电话、邮箱、微信等
+   - **缴费信息**：三届缴费日期及状态
+4. 填写完成后点击「保存」
+
+### 4.4 编辑专家
+
+点击表格行操作栏的 ✏️ 编辑图标，打开编辑表单，修改后点击「保存」。
+
+### 4.5 删除专家
+
+点击表格行操作栏的 🗑️ 删除图标，确认后即可删除。**此操作不可撤销**。
+
+### 4.6 导出 CSV
+
+点击「导出 CSV」按钮，将当前所有专家数据导出为 CSV 文件（UTF-8 编码，Excel 可直接打开）。
+
+---
+
+## 五、用户管理（仅管理员）
+
+仅 Admin 角色可见此菜单。
+
+### 5.1 邮箱白名单管理
+
+- **添加邮箱**：点击「添加邮箱」，输入邮箱地址、选择角色（超级管理员/管理员）、可选填备注
+- **修改角色**：直接在表格中切换角色下拉框
+- **删除邮箱**：点击删除按钮移除白名单条目
+
+### 5.2 已注册用户
+
+查看所有已注册的系统管理员列表，包括用户名、邮箱、角色和注册时间。
+
+### 5.3 角色说明
+
+| 角色 | 权限 |
+|------|------|
+| **超级管理员 (Superadmin)** | 查看/编辑专家数据 + 管理邮箱白名单 + 查看所有注册管理员 |
+| **管理员 (Admin)** | 查看/编辑专家数据 |
+
+---
+
+## 六、数据导入
+
+### 6.1 通过脚本批量导入
+
+系统提供了 Excel 批量导入脚本，可将现有 Excel 数据一次性导入数据库：
+
+```bash
+cd expert-manager
+npx tsx scripts/import-excel.ts
+```
+
+脚本将自动读取同级目录下的 `.xlsx` 文件并导入到 `experts` 表。
+
+**可选参数**：
+- `--file <path>` 指定 Excel 文件路径
+- `--clear` 导入前先清空已有数据
+
+示例：
+```bash
+npx tsx scripts/import-excel.ts --file "../蜂疗专业委员会会员名单（总表）.xlsx" --clear
+```
+
+---
+
+## 七、数据库表结构
+
+| 表名 | 说明 |
+|------|------|
+| `allowed_emails` | 邮箱白名单，控制注册权限和角色分配 |
+| `profiles` | 已注册管理员信息，注册时由数据库触发器自动创建 |
+| `experts` | 专家信息主表，包含 44 个字段 |
+
+数据库未启用 RLS，权限控制由应用层处理。白名单校验通过数据库触发器在注册时自动执行。
+
+---
+
+## 八、常见问题
+
+**Q: 注册时提示邮箱不在白名单？**
+A: 请联系管理员在「用户管理 > 邮箱白名单」中添加您的邮箱地址。
+
+**Q: 忘记密码怎么办？**
+A: 在登录页面使用「注册」流程重新发送验证码，已注册用户可通过验证码重新设置密码。
+
+**Q: 导出的 CSV 乱码？**
+A: 导出的 CSV 使用 UTF-8 编码（含 BOM），Excel 一般可自动识别。如仍有问题，请在 Excel 中使用「数据 > 从文本/CSV」导入，手动选择 UTF-8 编码。
+
+**Q: 如何添加新的管理员账号？**
+A: 管理员登录系统后，在「用户管理」页面添加对方邮箱到白名单，对方自行注册即可。
