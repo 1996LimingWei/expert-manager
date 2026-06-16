@@ -1,9 +1,6 @@
 // 专家信息类型定义
 export interface Expert {
     id: string;
-    serial_number: number | null;
-    committee: string | null;
-    committee_en: string | null;
     term_dates: string | null;
     term_dates_en: string | null;
     certificate_date: string | null;
@@ -32,18 +29,15 @@ export interface Expert {
     photo_url: string | null;
     phone: string | null;
     email: string | null;
-    qq: string | null;
     wechat: string | null;
     join_date: string | null;
     payment_date: string | null;
     expiry_date: string | null;
     payment_status: string | null;
-    payment_date_2: string | null;
-    expiry_date_2: string | null;
-    payment_status_2: string | null;
-    payment_date_3: string | null;
-    expiry_date_3: string | null;
-    payment_status_3: string | null;
+    ica_participation: string | null;
+    awards: string | null;
+    speeches: string | null;
+    cooperation_projects: string | null;
     notes: string | null;
     created_at: string;
     updated_at: string;

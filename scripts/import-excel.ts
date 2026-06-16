@@ -38,9 +38,6 @@ const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
 
 // Excel 列名到数据库字段名的映射
 const columnMapping: Record<string, keyof typeof sampleData> = {
-  '序号': 'serial_number',
-  '专业委员会': 'committee',
-  '专委会英文': 'committee_en',
   '起止日期': 'term_dates',
   '起止日期英文': 'term_dates_en',
   '证书日期': 'certificate_date',
@@ -69,25 +66,19 @@ const columnMapping: Record<string, keyof typeof sampleData> = {
   '照片': 'photo_url',
   '电话': 'phone',
   '邮箱': 'email',
-  'QQ': 'qq',
   '微信': 'wechat',
   '入会时间': 'join_date',
   '缴费日期': 'payment_date',
   '到期时间': 'expiry_date',
   '缴费情况': 'payment_status',
-  '第二届缴费日期': 'payment_date_2',
-  '第二届到期时间': 'expiry_date_2',
-  '第二届缴费情况': 'payment_status_2',
-  '第三届缴费日期': 'payment_date_3',
-  '第三届到期时间': 'expiry_date_3',
-  '第三届缴费情况': 'payment_status_3',
+  '参加ICA情况': 'ica_participation',
+  '获奖情况': 'awards',
+  '演讲情况': 'speeches',
+  '合作项目': 'cooperation_projects',
   '备注': 'notes',
 };
 
 const sampleData = {
-  serial_number: null as number | null,
-  committee: null as string | null,
-  committee_en: null as string | null,
   term_dates: null as string | null,
   term_dates_en: null as string | null,
   certificate_date: null as string | null,
@@ -116,18 +107,15 @@ const sampleData = {
   photo_url: null as string | null,
   phone: null as string | null,
   email: null as string | null,
-  qq: null as string | null,
   wechat: null as string | null,
   join_date: null as string | null,
   payment_date: null as string | null,
   expiry_date: null as string | null,
   payment_status: null as string | null,
-  payment_date_2: null as string | null,
-  expiry_date_2: null as string | null,
-  payment_status_2: null as string | null,
-  payment_date_3: null as string | null,
-  expiry_date_3: null as string | null,
-  payment_status_3: null as string | null,
+  ica_participation: null as string | null,
+  awards: null as string | null,
+  speeches: null as string | null,
+  cooperation_projects: null as string | null,
   notes: null as string | null,
 };
 
@@ -232,9 +220,7 @@ async function main() {
       for (const [excelCol, dbCol] of Object.entries(columnMapping)) {
         const value = row[excelCol];
 
-        if (dbCol === 'serial_number') {
-          record[dbCol] = formatNumber(value);
-        } else if (dbCol.includes('date') || dbCol.includes('expiry') || dbCol === 'join_date' || dbCol === 'certificate_date') {
+        if (dbCol.includes('date') || dbCol.includes('expiry') || dbCol === 'join_date' || dbCol === 'certificate_date') {
           record[dbCol] = formatDate(value);
         } else if (dbCol === 'phone') {
           // 电话号码保持为字符串

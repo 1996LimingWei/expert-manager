@@ -9,7 +9,8 @@ import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { toast } from 'sonner';
-import { Loader2, Mail, Lock, Users, ArrowRight } from 'lucide-react';
+import { Loader2, Mail, Lock, ArrowRight } from 'lucide-react';
+import Image from 'next/image';
 
 export default function LoginPage() {
     const router = useRouter();
@@ -22,12 +23,11 @@ export default function LoginPage() {
 
     // 注册状态
     const [registerEmail, setRegisterEmail] = useState('');
-    const [otpSent, setOtpSent] = useState(false);
+    const [registerPassword, setRegisterPassword] = useState('');
+    const [registerConfirmPassword, setRegisterConfirmPassword] = useState('');
     const [otp, setOtp] = useState('');
-    const [newPassword, setNewPassword] = useState('');
-    const [confirmPassword, setConfirmPassword] = useState('');
     const [registerLoading, setRegisterLoading] = useState(false);
-    const [registerStep, setRegisterStep] = useState<'email' | 'otp' | 'password'>('email');
+    const [registerStep, setRegisterStep] = useState<'info' | 'otp' | 'success'>('info');
 
     // 邮箱+密码登录
     const handleLogin = async (e: React.FormEvent) => {
@@ -60,27 +60,48 @@ export default function LoginPage() {
         }
     };
 
-    // 发送 OTP 验证码
+    // 发送 OTP 验证码（先校验白名单）
     const handleSendOTP = async (e: React.FormEvent) => {
         e.preventDefault();
         if (!registerEmail) {
             toast.error('请填写邮箱地址');
             return;
         }
+        if (registerPassword.length < 6) {
+            toast.error('密码至少6位');
+            return;
+        }
+        if (registerPassword !== registerConfirmPassword) {
+            toast.error('两次密码不一致');
+            return;
+        }
 
+        const email = registerEmail.toLowerCase().trim();
         setRegisterLoading(true);
         try {
-            const { error } = await supabase.auth.signInWithOtp({
-                email: registerEmail.toLowerCase().trim(),
+            // 先检查白名单
+            const { data: allowedEmail, error: whitelistError } = await supabase
+                .from('allowed_emails')
+                .select('email')
+                .eq('email', email)
+                .single();
+
+            if (whitelistError || !allowedEmail) {
+                toast.error('您的邮箱没有权限注册，请联系管理员添加');
+                return;
+            }
+
+            // 白名单通过，发送 6 位验证码（而非确认链接）
+            const { error: otpError } = await supabase.auth.signInWithOtp({
+                email,
                 options: {
                     shouldCreateUser: true,
                 },
             });
 
-            if (error) throw error;
+            if (otpError) throw otpError;
 
             toast.success('验证码已发送到您的邮箱');
-            setOtpSent(true);
             setRegisterStep('otp');
         } catch (error: unknown) {
             const err = error as { message?: string };
@@ -90,74 +111,39 @@ export default function LoginPage() {
         }
     };
 
-    // 验证 OTP
+    // 验证 OTP 并设置密码
     const handleVerifyOTP = async (e: React.FormEvent) => {
         e.preventDefault();
-        if (!otp || otp.length !== 6) {
-            toast.error('请输入6位验证码');
+        if (!otp || otp.length !== 8) {
+            toast.error('请输入8位验证码');
             return;
         }
 
+        const email = registerEmail.toLowerCase().trim();
         setRegisterLoading(true);
         try {
-            // 先尝试 signup
-            let { error } = await supabase.auth.verifyOtp({
-                email: registerEmail.toLowerCase().trim(),
+            // 验证 OTP（新用户通过 email 类型验证）
+            const { error: verifyError } = await supabase.auth.verifyOtp({
+                email,
                 token: otp,
-                type: 'signup',
+                type: 'email',
             });
 
-            if (error) {
-                // 尝试 magiclink
-                const result = await supabase.auth.verifyOtp({
-                    email: registerEmail.toLowerCase().trim(),
-                    token: otp,
-                    type: 'magiclink',
-                });
-                if (result.error) throw result.error;
+            if (verifyError) throw verifyError;
 
-                // 已有用户，直接跳转
-                toast.success('验证成功！');
-                router.push('/dashboard/experts');
-                return;
-            }
+            // 验证成功后设置密码
+            const { error: updateError } = await supabase.auth.updateUser({
+                password: registerPassword,
+            });
 
-            // 新用户，需要设置密码
-            setRegisterStep('password');
-            toast.success('验证成功，请设置密码');
+            if (updateError) throw updateError;
+
+            setRegisterStep('success');
+            toast.success('注册成功！');
+            setTimeout(() => router.push('/dashboard/experts'), 1500);
         } catch (error: unknown) {
             const err = error as { message?: string };
             toast.error(err.message || '验证码错误');
-        } finally {
-            setRegisterLoading(false);
-        }
-    };
-
-    // 设置密码
-    const handleSetPassword = async (e: React.FormEvent) => {
-        e.preventDefault();
-        if (newPassword.length < 6) {
-            toast.error('密码至少6位');
-            return;
-        }
-        if (newPassword !== confirmPassword) {
-            toast.error('两次密码不一致');
-            return;
-        }
-
-        setRegisterLoading(true);
-        try {
-            const { error } = await supabase.auth.updateUser({
-                password: newPassword,
-            });
-
-            if (error) throw error;
-
-            toast.success('注册成功！');
-            router.push('/dashboard/experts');
-        } catch (error: unknown) {
-            const err = error as { message?: string };
-            toast.error(err.message || '设置密码失败');
         } finally {
             setRegisterLoading(false);
         }
@@ -178,10 +164,16 @@ export default function LoginPage() {
             <div className="relative z-10 w-full max-w-md px-4">
                 {/* Logo 和标题 */}
                 <div className="text-center mb-8">
-                    <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-gradient-to-br from-blue-500 to-indigo-600 shadow-lg shadow-blue-500/30 mb-4">
-                        <Users className="w-8 h-8 text-white" />
+                    <div className="inline-flex items-center justify-center w-20 h-20 rounded-full overflow-hidden shadow-lg shadow-blue-500/30 mb-4 ring-2 ring-blue-400/30">
+                        <Image
+                            src="/logo.png"
+                            alt="ICA Logo"
+                            width={80}
+                            height={80}
+                            className="object-cover"
+                        />
                     </div>
-                    <h1 className="text-3xl font-bold text-white tracking-tight">外宾管理系统</h1>
+                    <h1 className="text-3xl font-bold bg-gradient-to-r from-blue-400 via-cyan-300 to-blue-500 bg-clip-text text-transparent tracking-tight">外宾管理系统</h1>
                     <p className="text-slate-400 mt-2">Expert Management System</p>
                 </div>
 
@@ -189,10 +181,10 @@ export default function LoginPage() {
                     <Tabs defaultValue="login" className="w-full">
                         <CardHeader className="pb-4">
                             <TabsList className="grid w-full grid-cols-2 bg-white/5">
-                                <TabsTrigger value="login" className="data-[state=active]:bg-blue-600 data-[state=active]:text-white">
+                                <TabsTrigger value="login" className="!text-white/60 data-active:!bg-white data-active:!text-slate-900">
                                     登录
                                 </TabsTrigger>
-                                <TabsTrigger value="register" className="data-[state=active]:bg-blue-600 data-[state=active]:text-white">
+                                <TabsTrigger value="register" className="!text-white/60 data-active:!bg-white data-active:!text-slate-900">
                                     注册
                                 </TabsTrigger>
                             </TabsList>
@@ -230,7 +222,7 @@ export default function LoginPage() {
                                         </div>
                                     </div>
                                 </CardContent>
-                                <CardFooter>
+                                <CardFooter className="bg-transparent border-0">
                                     <Button
                                         type="submit"
                                         className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white shadow-lg shadow-blue-500/30"
@@ -253,12 +245,12 @@ export default function LoginPage() {
                         </TabsContent>
 
                         <TabsContent value="register">
-                            {/* Step 1: 输入邮箱 */}
-                            {registerStep === 'email' && (
+                            {/* Step 1: 输入邮箱 + 密码 */}
+                            {registerStep === 'info' && (
                                 <form onSubmit={handleSendOTP}>
                                     <CardContent className="space-y-4">
                                         <CardDescription className="text-slate-400">
-                                            请输入您的邮箱地址，我们将发送验证码到您的邮箱。注意：您的邮箱需要被管理员预先添加到白名单中。
+                                            请输入邮箱和密码，邮箱需被管理员预先添加到白名单中。
                                         </CardDescription>
                                         <div className="space-y-2">
                                             <Label htmlFor="register-email" className="text-slate-300">邮箱地址</Label>
@@ -274,8 +266,36 @@ export default function LoginPage() {
                                                 />
                                             </div>
                                         </div>
+                                        <div className="space-y-2">
+                                            <Label htmlFor="register-password" className="text-slate-300">密码</Label>
+                                            <div className="relative">
+                                                <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
+                                                <Input
+                                                    id="register-password"
+                                                    type="password"
+                                                    placeholder="至少6位"
+                                                    value={registerPassword}
+                                                    onChange={(e) => setRegisterPassword(e.target.value)}
+                                                    className="pl-10 bg-white/5 border-white/10 text-white placeholder:text-slate-500 focus:border-blue-500 focus:ring-blue-500/20"
+                                                />
+                                            </div>
+                                        </div>
+                                        <div className="space-y-2">
+                                            <Label htmlFor="register-confirm-password" className="text-slate-300">确认密码</Label>
+                                            <div className="relative">
+                                                <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
+                                                <Input
+                                                    id="register-confirm-password"
+                                                    type="password"
+                                                    placeholder="再次输入密码"
+                                                    value={registerConfirmPassword}
+                                                    onChange={(e) => setRegisterConfirmPassword(e.target.value)}
+                                                    className="pl-10 bg-white/5 border-white/10 text-white placeholder:text-slate-500 focus:border-blue-500 focus:ring-blue-500/20"
+                                                />
+                                            </div>
+                                        </div>
                                     </CardContent>
-                                    <CardFooter>
+                                    <CardFooter className="bg-transparent border-0">
                                         <Button
                                             type="submit"
                                             className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white shadow-lg shadow-blue-500/30"
@@ -302,15 +322,15 @@ export default function LoginPage() {
                                 <form onSubmit={handleVerifyOTP}>
                                     <CardContent className="space-y-4">
                                         <CardDescription className="text-slate-400">
-                                            验证码已发送至 <span className="text-blue-400">{registerEmail}</span>，请查看邮箱并输入6位验证码。
+                                            验证码已发送至 <span className="text-blue-400">{registerEmail}</span>，请查看邮箱并输入8位验证码。
                                         </CardDescription>
                                         <div className="space-y-2">
                                             <Label htmlFor="otp" className="text-slate-300">验证码</Label>
                                             <Input
                                                 id="otp"
                                                 type="text"
-                                                maxLength={6}
-                                                placeholder="000000"
+                                                maxLength={8}
+                                                placeholder="00000000"
                                                 value={otp}
                                                 onChange={(e) => setOtp(e.target.value.replace(/\D/g, ''))}
                                                 className="bg-white/5 border-white/10 text-white text-center text-2xl tracking-widest placeholder:text-slate-500 focus:border-blue-500 focus:ring-blue-500/20"
@@ -319,16 +339,15 @@ export default function LoginPage() {
                                         <button
                                             type="button"
                                             onClick={() => {
-                                                setRegisterStep('email');
+                                                setRegisterStep('info');
                                                 setOtp('');
-                                                setOtpSent(false);
                                             }}
                                             className="text-sm text-blue-400 hover:text-blue-300 transition-colors"
                                         >
-                                            ← 返回重新发送
+                                            ← 返回修改
                                         </button>
                                     </CardContent>
-                                    <CardFooter>
+                                    <CardFooter className="bg-transparent border-0">
                                         <Button
                                             type="submit"
                                             className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white shadow-lg shadow-blue-500/30"
@@ -337,65 +356,7 @@ export default function LoginPage() {
                                             {registerLoading ? (
                                                 <>
                                                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                                                    验证中...
-                                                </>
-                                            ) : (
-                                                <>
-                                                    验证
-                                                    <ArrowRight className="ml-2 h-4 w-4" />
-                                                </>
-                                            )}
-                                        </Button>
-                                    </CardFooter>
-                                </form>
-                            )}
-
-                            {/* Step 3: 设置密码 */}
-                            {registerStep === 'password' && (
-                                <form onSubmit={handleSetPassword}>
-                                    <CardContent className="space-y-4">
-                                        <CardDescription className="text-slate-400">
-                                            验证成功！请设置您的登录密码（至少6位）。
-                                        </CardDescription>
-                                        <div className="space-y-2">
-                                            <Label htmlFor="new-password" className="text-slate-300">新密码</Label>
-                                            <div className="relative">
-                                                <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
-                                                <Input
-                                                    id="new-password"
-                                                    type="password"
-                                                    placeholder="至少6位"
-                                                    value={newPassword}
-                                                    onChange={(e) => setNewPassword(e.target.value)}
-                                                    className="pl-10 bg-white/5 border-white/10 text-white placeholder:text-slate-500 focus:border-blue-500 focus:ring-blue-500/20"
-                                                />
-                                            </div>
-                                        </div>
-                                        <div className="space-y-2">
-                                            <Label htmlFor="confirm-password" className="text-slate-300">确认密码</Label>
-                                            <div className="relative">
-                                                <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
-                                                <Input
-                                                    id="confirm-password"
-                                                    type="password"
-                                                    placeholder="再次输入密码"
-                                                    value={confirmPassword}
-                                                    onChange={(e) => setConfirmPassword(e.target.value)}
-                                                    className="pl-10 bg-white/5 border-white/10 text-white placeholder:text-slate-500 focus:border-blue-500 focus:ring-blue-500/20"
-                                                />
-                                            </div>
-                                        </div>
-                                    </CardContent>
-                                    <CardFooter>
-                                        <Button
-                                            type="submit"
-                                            className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white shadow-lg shadow-blue-500/30"
-                                            disabled={registerLoading}
-                                        >
-                                            {registerLoading ? (
-                                                <>
-                                                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                                                    设置中...
+                                                    注册中...
                                                 </>
                                             ) : (
                                                 <>
@@ -406,6 +367,19 @@ export default function LoginPage() {
                                         </Button>
                                     </CardFooter>
                                 </form>
+                            )}
+
+                            {/* Step 3: 注册成功 */}
+                            {registerStep === 'success' && (
+                                <div className="py-8 text-center">
+                                    <div className="mx-auto w-16 h-16 bg-green-500/20 rounded-full flex items-center justify-center mb-4">
+                                        <svg className="w-8 h-8 text-green-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                                        </svg>
+                                    </div>
+                                    <h3 className="text-xl font-semibold text-white mb-2">注册成功！</h3>
+                                    <p className="text-slate-400">正在跳转到系统首页...</p>
+                                </div>
                             )}
                         </TabsContent>
                     </Tabs>

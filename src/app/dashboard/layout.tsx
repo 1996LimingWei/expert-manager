@@ -12,11 +12,20 @@ import { Separator } from '@/components/ui/separator';
 import {
     DropdownMenu,
     DropdownMenuContent,
+    DropdownMenuGroup,
     DropdownMenuItem,
     DropdownMenuLabel,
     DropdownMenuSeparator,
     DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
+import {
+    Dialog,
+    DialogContent,
+    DialogHeader,
+    DialogTitle,
+    DialogDescription,
+} from '@/components/ui/dialog';
+import { Input } from '@/components/ui/input';
 import {
     Users,
     UserCog,
@@ -24,7 +33,9 @@ import {
     Menu,
     ChevronRight,
     Home,
+    Pencil,
 } from 'lucide-react';
+import Image from 'next/image';
 import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
 
@@ -44,6 +55,9 @@ export default function DashboardLayout({
     const [profile, setProfile] = useState<Profile | null>(null);
     const [sidebarOpen, setSidebarOpen] = useState(false);
     const [loading, setLoading] = useState(true);
+    const [editNameOpen, setEditNameOpen] = useState(false);
+    const [newDisplayName, setNewDisplayName] = useState('');
+    const [savingName, setSavingName] = useState(false);
 
     useEffect(() => {
         async function loadProfile() {
@@ -77,6 +91,28 @@ export default function DashboardLayout({
         }
     };
 
+    const handleSaveName = async () => {
+        if (!newDisplayName.trim()) {
+            toast.error('用户名不能为空');
+            return;
+        }
+        setSavingName(true);
+        try {
+            const { error } = await supabase
+                .from('profiles')
+                .update({ display_name: newDisplayName.trim(), updated_at: new Date().toISOString() })
+                .eq('id', profile!.id);
+            if (error) throw error;
+            setProfile({ ...profile!, display_name: newDisplayName.trim() });
+            toast.success('用户名已更新');
+            setEditNameOpen(false);
+        } catch {
+            toast.error('更新失败');
+        } finally {
+            setSavingName(false);
+        }
+    };
+
     const filteredNav = navigation.filter(
         (item) => !item.superadminOnly || profile?.role === 'superadmin'
     );
@@ -90,11 +126,17 @@ export default function DashboardLayout({
         <div className="flex h-full flex-col">
             {/* Logo */}
             <div className="flex h-16 items-center gap-3 px-6">
-                <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-gradient-to-br from-blue-500 to-indigo-600 shadow-md">
-                    <Users className="h-5 w-5 text-white" />
+                <div className="flex h-9 w-9 items-center justify-center rounded-full overflow-hidden ring-1 ring-blue-400/40">
+                    <Image
+                        src="/logo.png"
+                        alt="ICA"
+                        width={36}
+                        height={36}
+                        className="object-cover"
+                    />
                 </div>
                 <div>
-                    <h2 className="text-sm font-semibold text-white">外宾管理</h2>
+                    <h2 className="text-sm font-semibold bg-gradient-to-r from-blue-400 to-cyan-300 bg-clip-text text-transparent">外宾管理</h2>
                     <p className="text-xs text-slate-400">Expert Manager</p>
                 </div>
             </div>
@@ -182,14 +224,8 @@ export default function DashboardLayout({
                 <header className="sticky top-0 z-30 flex h-16 items-center gap-4 border-b border-slate-200 bg-white/80 backdrop-blur-md px-4 lg:px-8">
                     {/* Mobile menu button */}
                     <Sheet open={sidebarOpen} onOpenChange={setSidebarOpen}>
-                        <SheetTrigger>
-                            <Button
-                                variant="ghost"
-                                size="icon"
-                                className="lg:hidden"
-                            >
-                                <Menu className="h-5 w-5" />
-                            </Button>
+                        <SheetTrigger className="inline-flex items-center justify-center size-9 rounded-md hover:bg-slate-100 lg:hidden">
+                            <Menu className="h-5 w-5" />
                         </SheetTrigger>
                     </Sheet>
 
@@ -205,30 +241,40 @@ export default function DashboardLayout({
                     {/* User dropdown */}
                     <div className="ml-auto flex items-center gap-4">
                         <DropdownMenu>
-                            <DropdownMenuTrigger>
-                                <Button variant="ghost" className="flex items-center gap-2">
-                                    <Avatar className="h-8 w-8">
-                                        <AvatarFallback className="bg-gradient-to-br from-blue-500 to-indigo-600 text-white text-xs">
-                                            {getInitials(profile?.email)}
-                                        </AvatarFallback>
-                                    </Avatar>
-                                    <span className="hidden md:inline-block text-sm font-medium">
-                                        {profile?.display_name || profile?.email?.split('@')[0]}
-                                    </span>
-                                </Button>
+                            <DropdownMenuTrigger className="inline-flex items-center gap-2 rounded-md px-3 py-2 text-sm font-medium hover:bg-slate-100 transition-colors">
+                                <Avatar className="h-8 w-8">
+                                    <AvatarFallback className="bg-gradient-to-br from-blue-500 to-indigo-600 text-white text-xs">
+                                        {getInitials(profile?.email)}
+                                    </AvatarFallback>
+                                </Avatar>
+                                <span className="hidden md:inline-block text-sm font-medium">
+                                    {profile?.display_name || profile?.email?.split('@')[0]}
+                                </span>
                             </DropdownMenuTrigger>
                             <DropdownMenuContent align="end" className="w-56">
-                                <DropdownMenuLabel>
-                                    <div className="flex flex-col space-y-1">
-                                        <p className="text-sm font-medium">{profile?.display_name || profile?.email?.split('@')[0]}</p>
-                                        <p className="text-xs text-slate-500">{profile?.email}</p>
-                                    </div>
-                                </DropdownMenuLabel>
-                                <DropdownMenuSeparator />
-                                <DropdownMenuItem onClick={handleSignOut} className="text-red-600 cursor-pointer">
-                                    <LogOut className="mr-2 h-4 w-4" />
-                                    登出
-                                </DropdownMenuItem>
+                                <DropdownMenuGroup>
+                                    <DropdownMenuLabel>
+                                        <div className="flex flex-col space-y-1">
+                                            <p className="text-sm font-medium">{profile?.display_name || profile?.email?.split('@')[0]}</p>
+                                            <p className="text-xs text-slate-500">{profile?.email}</p>
+                                        </div>
+                                    </DropdownMenuLabel>
+                                    <DropdownMenuSeparator />
+                                    <DropdownMenuItem
+                                        onClick={() => {
+                                            setNewDisplayName(profile?.display_name || '');
+                                            setEditNameOpen(true);
+                                        }}
+                                        className="cursor-pointer"
+                                    >
+                                        <Pencil className="mr-2 h-4 w-4" />
+                                        修改用户名
+                                    </DropdownMenuItem>
+                                    <DropdownMenuItem onClick={handleSignOut} className="text-red-600 cursor-pointer">
+                                        <LogOut className="mr-2 h-4 w-4" />
+                                        登出
+                                    </DropdownMenuItem>
+                                </DropdownMenuGroup>
                             </DropdownMenuContent>
                         </DropdownMenu>
                     </div>
@@ -239,6 +285,30 @@ export default function DashboardLayout({
                     {children}
                 </main>
             </div>
+
+            {/* 修改用户名 Dialog */}
+            <Dialog open={editNameOpen} onOpenChange={setEditNameOpen}>
+                <DialogContent>
+                    <DialogHeader>
+                        <DialogTitle>修改用户名</DialogTitle>
+                        <DialogDescription>设置显示在右上角的用户名</DialogDescription>
+                    </DialogHeader>
+                    <div className="space-y-4 pt-2">
+                        <Input
+                            value={newDisplayName}
+                            onChange={(e) => setNewDisplayName(e.target.value)}
+                            placeholder="输入新用户名"
+                            onKeyDown={(e) => e.key === 'Enter' && handleSaveName()}
+                        />
+                        <div className="flex justify-end gap-2">
+                            <Button variant="outline" onClick={() => setEditNameOpen(false)}>取消</Button>
+                            <Button onClick={handleSaveName} disabled={savingName}>
+                                {savingName ? '保存中...' : '保存'}
+                            </Button>
+                        </div>
+                    </div>
+                </DialogContent>
+            </Dialog>
         </div>
     );
 }

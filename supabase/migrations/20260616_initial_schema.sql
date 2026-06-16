@@ -38,9 +38,6 @@ CREATE TABLE public.profiles (
 -- ============================================
 CREATE TABLE public.experts (
     id uuid NOT NULL PRIMARY KEY DEFAULT gen_random_uuid(),
-    serial_number integer,
-    committee text,
-    committee_en text,
     term_dates text,
     term_dates_en text,
     certificate_date date,
@@ -69,18 +66,15 @@ CREATE TABLE public.experts (
     photo_url text,
     phone text,
     email text,
-    qq text,
     wechat text,
     join_date date,
     payment_date date,
     expiry_date date,
     payment_status text,
-    payment_date_2 date,
-    expiry_date_2 date,
-    payment_status_2 text,
-    payment_date_3 date,
-    expiry_date_3 date,
-    payment_status_3 text,
+    ica_participation text,
+    awards text,
+    speeches text,
+    cooperation_projects text,
     notes text,
     created_at timestamptz NOT NULL DEFAULT now(),
     updated_at timestamptz NOT NULL DEFAULT now(),
@@ -150,7 +144,8 @@ CREATE TRIGGER on_auth_user_created
 -- 6. 初始超级管理员
 -- ============================================
 INSERT INTO public.allowed_emails (email, role, note)
-VALUES ('weilim1996@163.com', 'superadmin', '初始超级管理员');
+VALUES ('120@39fengliao.com', 'superadmin', '初始超级管理员'),
+       ('demo@demo.com', 'superadmin', '开发测试账号');
 
 -- ============================================
 -- 7. 索引优化
@@ -158,7 +153,6 @@ VALUES ('weilim1996@163.com', 'superadmin', '初始超级管理员');
 CREATE INDEX idx_experts_name_en ON public.experts (name_en);
 CREATE INDEX idx_experts_name_cn ON public.experts (name_cn);
 CREATE INDEX idx_experts_nationality_en ON public.experts (nationality_en);
-CREATE INDEX idx_experts_committee ON public.experts (committee);
 CREATE INDEX idx_experts_email ON public.experts (email);
 CREATE INDEX idx_allowed_emails_email ON public.allowed_emails (email);
 CREATE INDEX idx_profiles_role ON public.profiles (role);

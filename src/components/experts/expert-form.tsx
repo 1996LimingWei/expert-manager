@@ -17,9 +17,6 @@ interface ExpertFormProps {
 }
 
 const emptyForm: ExpertFormData = {
-  serial_number: null,
-  committee: null,
-  committee_en: null,
   term_dates: null,
   term_dates_en: null,
   certificate_date: null,
@@ -48,18 +45,15 @@ const emptyForm: ExpertFormData = {
   photo_url: null,
   phone: null,
   email: null,
-  qq: null,
   wechat: null,
   join_date: null,
   payment_date: null,
   expiry_date: null,
   payment_status: null,
-  payment_date_2: null,
-  expiry_date_2: null,
-  payment_status_2: null,
-  payment_date_3: null,
-  expiry_date_3: null,
-  payment_status_3: null,
+  ica_participation: null,
+  awards: null,
+  speeches: null,
+  cooperation_projects: null,
   notes: null,
 };
 
@@ -96,13 +90,6 @@ export function ExpertForm({ expert, onSave, onCancel }: ExpertFormProps) {
         {/* 基本信息 */}
         <TabsContent value="basic" className="space-y-4 mt-4">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <FormField label="序号" type="number">
-              <Input
-                type="number"
-                value={formData.serial_number ?? ''}
-                onChange={(e) => updateField('serial_number', e.target.value ? Number(e.target.value) : null)}
-              />
-            </FormField>
             <FormField label="性别">
               <Input
                 value={formData.gender_cn ?? ''}
@@ -191,18 +178,6 @@ export function ExpertForm({ expert, onSave, onCancel }: ExpertFormProps) {
         {/* 委员会信息 */}
         <TabsContent value="committee" className="space-y-4 mt-4">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <FormField label="专业委员会">
-              <Input
-                value={formData.committee ?? ''}
-                onChange={(e) => updateField('committee', e.target.value)}
-              />
-            </FormField>
-            <FormField label="专委会英文">
-              <Input
-                value={formData.committee_en ?? ''}
-                onChange={(e) => updateField('committee_en', e.target.value)}
-              />
-            </FormField>
             <FormField label="会内职务">
               <Input
                 value={formData.committee_position ?? ''}
@@ -319,12 +294,6 @@ export function ExpertForm({ expert, onSave, onCancel }: ExpertFormProps) {
                 onChange={(e) => updateField('email', e.target.value)}
               />
             </FormField>
-            <FormField label="QQ">
-              <Input
-                value={formData.qq ?? ''}
-                onChange={(e) => updateField('qq', e.target.value)}
-              />
-            </FormField>
             <FormField label="微信">
               <Input
                 value={formData.wechat ?? ''}
@@ -380,54 +349,30 @@ export function ExpertForm({ expert, onSave, onCancel }: ExpertFormProps) {
           <Separator />
 
           <div className="space-y-4">
-            <h3 className="text-sm font-medium text-slate-700">第二届</h3>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <FormField label="缴费日期">
+            <h3 className="text-sm font-medium text-slate-700">ICA 相关信息</h3>
+            <div className="grid grid-cols-1 gap-4">
+              <FormField label="参加ICA情况">
                 <Input
-                  type="date"
-                  value={formData.payment_date_2 ?? ''}
-                  onChange={(e) => updateField('payment_date_2', e.target.value)}
+                  value={formData.ica_participation ?? ''}
+                  onChange={(e) => updateField('ica_participation', e.target.value)}
                 />
               </FormField>
-              <FormField label="到期时间">
+              <FormField label="获奖情况">
                 <Input
-                  type="date"
-                  value={formData.expiry_date_2 ?? ''}
-                  onChange={(e) => updateField('expiry_date_2', e.target.value)}
+                  value={formData.awards ?? ''}
+                  onChange={(e) => updateField('awards', e.target.value)}
                 />
               </FormField>
-              <FormField label="缴费情况">
+              <FormField label="演讲情况">
                 <Input
-                  value={formData.payment_status_2 ?? ''}
-                  onChange={(e) => updateField('payment_status_2', e.target.value)}
+                  value={formData.speeches ?? ''}
+                  onChange={(e) => updateField('speeches', e.target.value)}
                 />
               </FormField>
-            </div>
-          </div>
-
-          <Separator />
-
-          <div className="space-y-4">
-            <h3 className="text-sm font-medium text-slate-700">第三届</h3>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <FormField label="缴费日期">
+              <FormField label="合作项目">
                 <Input
-                  type="date"
-                  value={formData.payment_date_3 ?? ''}
-                  onChange={(e) => updateField('payment_date_3', e.target.value)}
-                />
-              </FormField>
-              <FormField label="到期时间">
-                <Input
-                  type="date"
-                  value={formData.expiry_date_3 ?? ''}
-                  onChange={(e) => updateField('expiry_date_3', e.target.value)}
-                />
-              </FormField>
-              <FormField label="缴费情况">
-                <Input
-                  value={formData.payment_status_3 ?? ''}
-                  onChange={(e) => updateField('payment_status_3', e.target.value)}
+                  value={formData.cooperation_projects ?? ''}
+                  onChange={(e) => updateField('cooperation_projects', e.target.value)}
                 />
               </FormField>
             </div>
