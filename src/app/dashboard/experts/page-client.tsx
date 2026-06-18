@@ -11,6 +11,7 @@ import {
   getPaginationRowModel,
   flexRender,
   ColumnDef,
+  Column,
   SortingState,
   ColumnFiltersState,
   VisibilityState,
@@ -364,6 +365,14 @@ export default function ExpertsPageClient() {
     }
   };
 
+  // 可排序表头辅助函数
+  const SortableHeader = (label: string) => ({ column }: { column: Column<Expert> }) => (
+    <Button variant="ghost" onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')} className="h-8 p-0">
+      {label}
+      {column.getIsSorted() === 'asc' ? <ArrowUp className="ml-1 h-3 w-3" /> : column.getIsSorted() === 'desc' ? <ArrowDown className="ml-1 h-3 w-3" /> : <ArrowUpDown className="ml-1 h-3 w-3 opacity-50" />}
+    </Button>
+  );
+
   // 表格列定义
   const columns: ColumnDef<Expert>[] = useMemo(
     () => [
@@ -382,70 +391,60 @@ export default function ExpertsPageClient() {
         ),
         size: 120,
       },
-      { accessorKey: 'certificate_no', header: '证书编号', cell: ({ row }) => row.getValue('certificate_no') || '-' },
-      { accessorKey: 'committee_position', header: '会内职务', cell: ({ row }) => (<Badge variant="outline" className="font-normal">{row.getValue('committee_position') || '-'}</Badge>) },
-      { accessorKey: 'committee_position_en', header: 'Title_in_Committee', cell: ({ row }) => row.getValue('committee_position_en') || '-' },
-      { accessorKey: 'name_cn', header: '姓名', cell: ({ row }) => row.getValue('name_cn') || '-' },
+      { accessorKey: 'certificate_no', header: SortableHeader('证书编号'), cell: ({ row }) => row.getValue('certificate_no') || '-' },
+      { accessorKey: 'committee_position', header: SortableHeader('会内职务'), cell: ({ row }) => (<Badge variant="outline" className="font-normal">{row.getValue('committee_position') || '-'}</Badge>) },
+      { accessorKey: 'committee_position_en', header: SortableHeader('Title_in_Committee'), cell: ({ row }) => row.getValue('committee_position_en') || '-' },
+      { accessorKey: 'name_cn', header: SortableHeader('姓名'), cell: ({ row }) => row.getValue('name_cn') || '-' },
       {
         accessorKey: 'name_en',
-        header: ({ column }) => (
-          <Button variant="ghost" onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')} className="h-8 p-0">
-            英文姓名
-            {column.getIsSorted() === 'asc' ? <ArrowUp className="ml-1 h-3 w-3" /> : column.getIsSorted() === 'desc' ? <ArrowDown className="ml-1 h-3 w-3" /> : <ArrowUpDown className="ml-1 h-3 w-3 opacity-50" />}
-          </Button>
-        ),
+        header: SortableHeader('英文姓名'),
         cell: ({ row }) => (<span className="font-medium text-slate-900">{row.getValue('name_en') || '-'}</span>),
       },
-      { accessorKey: 'last_name_en', header: '姓（英）', cell: ({ row }) => row.getValue('last_name_en') || '-' },
-      { accessorKey: 'first_name_en', header: '名（英）', cell: ({ row }) => row.getValue('first_name_en') || '-' },
-      { accessorKey: 'salutation_en', header: '英文称谓', cell: ({ row }) => row.getValue('salutation_en') || '-' },
-      { accessorKey: 'salutation_cn', header: '中文称谓', cell: ({ row }) => row.getValue('salutation_cn') || '-' },
-      { accessorKey: 'gender_cn', header: '性别', cell: ({ row }) => row.getValue('gender_cn') || '-' },
-      { accessorKey: 'gender_en', header: 'Sex', cell: ({ row }) => row.getValue('gender_en') || '-' },
-      { accessorKey: 'birth_date', header: '出生年月', cell: ({ row }) => row.getValue('birth_date') || '-' },
-      { accessorKey: 'organization', header: '单位', cell: ({ row }) => (<span className="max-w-[200px] truncate block" title={row.getValue('organization') as string}>{row.getValue('organization') || '-'}</span>) },
-      { accessorKey: 'organization_en', header: '单位英文', cell: ({ row }) => row.getValue('organization_en') || '-' },
-      { accessorKey: 'position', header: '职务', cell: ({ row }) => row.getValue('position') || '-' },
-      { accessorKey: 'professional_title', header: '职称', cell: ({ row }) => row.getValue('professional_title') || '-' },
-      { accessorKey: 'professional_title_en', header: '职称英文', cell: ({ row }) => row.getValue('professional_title_en') || '-' },
+      { accessorKey: 'last_name_en', header: SortableHeader('姓（英）'), cell: ({ row }) => row.getValue('last_name_en') || '-' },
+      { accessorKey: 'first_name_en', header: SortableHeader('名（英）'), cell: ({ row }) => row.getValue('first_name_en') || '-' },
+      { accessorKey: 'salutation_en', header: SortableHeader('英文称谓'), cell: ({ row }) => row.getValue('salutation_en') || '-' },
+      { accessorKey: 'salutation_cn', header: SortableHeader('中文称谓'), cell: ({ row }) => row.getValue('salutation_cn') || '-' },
+      { accessorKey: 'gender_cn', header: SortableHeader('性别'), cell: ({ row }) => row.getValue('gender_cn') || '-' },
+      { accessorKey: 'gender_en', header: SortableHeader('Sex'), cell: ({ row }) => row.getValue('gender_en') || '-' },
+      { accessorKey: 'birth_date', header: SortableHeader('出生年月'), cell: ({ row }) => row.getValue('birth_date') || '-' },
+      { accessorKey: 'organization', header: SortableHeader('单位'), cell: ({ row }) => (<span className="max-w-[200px] truncate block" title={row.getValue('organization') as string}>{row.getValue('organization') || '-'}</span>) },
+      { accessorKey: 'organization_en', header: SortableHeader('单位英文'), cell: ({ row }) => row.getValue('organization_en') || '-' },
+      { accessorKey: 'position', header: SortableHeader('职务'), cell: ({ row }) => row.getValue('position') || '-' },
+      { accessorKey: 'professional_title', header: SortableHeader('职称'), cell: ({ row }) => row.getValue('professional_title') || '-' },
+      { accessorKey: 'professional_title_en', header: SortableHeader('职称英文'), cell: ({ row }) => row.getValue('professional_title_en') || '-' },
       {
         accessorKey: 'nationality_cn',
-        header: ({ column }) => (
-          <Button variant="ghost" onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')} className="h-8 p-0">
-            国籍
-            {column.getIsSorted() === 'asc' ? <ArrowUp className="ml-1 h-3 w-3" /> : column.getIsSorted() === 'desc' ? <ArrowDown className="ml-1 h-3 w-3" /> : <ArrowUpDown className="ml-1 h-3 w-3 opacity-50" />}
-          </Button>
-        ),
+        header: SortableHeader('国籍'),
         cell: ({ row }) => {
           const cn = row.getValue('nationality_cn') as string;
           const en = row.getValue('nationality_en') as string;
           return <span>{cn || en || '-'}</span>;
         },
       },
-      { accessorKey: 'nationality_en', header: 'Country' },
-      { accessorKey: 'phone', header: '电话', cell: ({ row }) => row.getValue('phone') || '-' },
+      { accessorKey: 'nationality_en', header: SortableHeader('Country') },
+      { accessorKey: 'phone', header: SortableHeader('电话'), cell: ({ row }) => row.getValue('phone') || '-' },
       {
-        accessorKey: 'email', header: '邮箱', cell: ({ row }) => {
+        accessorKey: 'email', header: SortableHeader('邮箱'), cell: ({ row }) => {
           const email = row.getValue('email') as string;
           return email ? (<a href={`mailto:${email}`} className="text-blue-600 hover:underline text-sm">{email}</a>) : '-';
         }
       },
-      { accessorKey: 'wechat', header: '微信', cell: ({ row }) => row.getValue('wechat') || '-' },
-      { accessorKey: 'join_date', header: '入会时间', cell: ({ row }) => row.getValue('join_date') || '-' },
-      { accessorKey: 'payment_date', header: '缴费日期', cell: ({ row }) => row.getValue('payment_date') || '-' },
-      { accessorKey: 'expiry_date', header: '到期时间', cell: ({ row }) => row.getValue('expiry_date') || '-' },
+      { accessorKey: 'wechat', header: SortableHeader('微信'), cell: ({ row }) => row.getValue('wechat') || '-' },
+      { accessorKey: 'join_date', header: SortableHeader('入会时间'), cell: ({ row }) => row.getValue('join_date') || '-' },
+      { accessorKey: 'payment_date', header: SortableHeader('缴费日期'), cell: ({ row }) => row.getValue('payment_date') || '-' },
+      { accessorKey: 'expiry_date', header: SortableHeader('到期时间'), cell: ({ row }) => row.getValue('expiry_date') || '-' },
       {
-        accessorKey: 'payment_status', header: '缴费情况', cell: ({ row }) => {
+        accessorKey: 'payment_status', header: SortableHeader('缴费情况'), cell: ({ row }) => {
           const status = row.getValue('payment_status') as string;
           if (!status) return '-';
           const isPaid = status === '已缴费' || /^\d+$/.test(status);
           return (<Badge variant={isPaid ? 'default' : 'destructive'} className="font-normal">{status}</Badge>);
         }
       },
-      { accessorKey: 'ica_participation', header: '参加ICA情况', cell: ({ row }) => row.getValue('ica_participation') || '-' },
-      { accessorKey: 'awards', header: '获奖情况', cell: ({ row }) => row.getValue('awards') || '-' },
-      { accessorKey: 'speeches', header: '演讲情况', cell: ({ row }) => row.getValue('speeches') || '-' },
-      { accessorKey: 'cooperation_projects', header: '合作项目', cell: ({ row }) => row.getValue('cooperation_projects') || '-' },
+      { accessorKey: 'ica_participation', header: SortableHeader('参加ICA情况'), cell: ({ row }) => row.getValue('ica_participation') || '-' },
+      { accessorKey: 'awards', header: SortableHeader('获奖情况'), cell: ({ row }) => row.getValue('awards') || '-' },
+      { accessorKey: 'speeches', header: SortableHeader('演讲情况'), cell: ({ row }) => row.getValue('speeches') || '-' },
+      { accessorKey: 'cooperation_projects', header: SortableHeader('合作项目'), cell: ({ row }) => row.getValue('cooperation_projects') || '-' },
       { accessorKey: 'notes', header: '备注', cell: ({ row }) => row.getValue('notes') || '-' },
     ],
     []
