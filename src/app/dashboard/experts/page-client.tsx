@@ -367,6 +367,21 @@ export default function ExpertsPageClient() {
   // 表格列定义
   const columns: ColumnDef<Expert>[] = useMemo(
     () => [
+      {
+        id: 'actions',
+        header: '操作',
+        cell: ({ row }) => (
+          <div className="flex items-center gap-1">
+            <Button variant="ghost" size="icon" className="h-8 w-8" onClick={(e) => { e.stopPropagation(); setEditingExpert(row.original); setFormDialogOpen(true); }}>
+              <Pencil className="h-4 w-4 text-blue-500" />
+            </Button>
+            <Button variant="ghost" size="icon" className="h-8 w-8" onClick={(e) => { e.stopPropagation(); setDeletingExpert(row.original); setDeleteDialogOpen(true); }}>
+              <Trash2 className="h-4 w-4 text-red-500" />
+            </Button>
+          </div>
+        ),
+        size: 120,
+      },
       { accessorKey: 'certificate_no', header: '证书编号', cell: ({ row }) => row.getValue('certificate_no') || '-' },
       { accessorKey: 'committee_position', header: '会内职务', cell: ({ row }) => (<Badge variant="outline" className="font-normal">{row.getValue('committee_position') || '-'}</Badge>) },
       { accessorKey: 'committee_position_en', header: 'Title_in_Committee', cell: ({ row }) => row.getValue('committee_position_en') || '-' },
@@ -432,21 +447,6 @@ export default function ExpertsPageClient() {
       { accessorKey: 'speeches', header: '演讲情况', cell: ({ row }) => row.getValue('speeches') || '-' },
       { accessorKey: 'cooperation_projects', header: '合作项目', cell: ({ row }) => row.getValue('cooperation_projects') || '-' },
       { accessorKey: 'notes', header: '备注', cell: ({ row }) => row.getValue('notes') || '-' },
-      {
-        id: 'actions',
-        header: '操作',
-        cell: ({ row }) => (
-          <div className="flex items-center gap-1">
-            <Button variant="ghost" size="icon" className="h-8 w-8" onClick={(e) => { e.stopPropagation(); setEditingExpert(row.original); setFormDialogOpen(true); }}>
-              <Pencil className="h-4 w-4 text-blue-500" />
-            </Button>
-            <Button variant="ghost" size="icon" className="h-8 w-8" onClick={(e) => { e.stopPropagation(); setDeletingExpert(row.original); setDeleteDialogOpen(true); }}>
-              <Trash2 className="h-4 w-4 text-red-500" />
-            </Button>
-          </div>
-        ),
-        size: 120,
-      },
     ],
     []
   );
@@ -708,7 +708,14 @@ export default function ExpertsPageClient() {
       </Card>
 
       {/* 新增/编辑 Dialog */}
-      <Dialog open={formDialogOpen} onOpenChange={setFormDialogOpen}>
+      <Dialog
+        open={formDialogOpen}
+        onOpenChange={(open, details) => {
+          if (!open && (details.reason === 'escape-key' || details.reason === 'outside-press')) return;
+          setFormDialogOpen(open);
+        }}
+        disablePointerDismissal
+      >
         <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>{editingExpert ? '编辑专家信息' : '添加专家'}</DialogTitle>
@@ -833,8 +840,8 @@ export default function ExpertsPageClient() {
             <button
               onClick={() => setUploadResultTab('success')}
               className={`px-4 py-2 text-sm font-medium border-b-2 transition-colors ${uploadResultTab === 'success'
-                  ? 'border-green-500 text-green-700'
-                  : 'border-transparent text-slate-500 hover:text-slate-700'
+                ? 'border-green-500 text-green-700'
+                : 'border-transparent text-slate-500 hover:text-slate-700'
                 }`}
             >
               <CheckCircle2 className="inline h-4 w-4 mr-1" />
@@ -843,8 +850,8 @@ export default function ExpertsPageClient() {
             <button
               onClick={() => setUploadResultTab('failed')}
               className={`px-4 py-2 text-sm font-medium border-b-2 transition-colors ${uploadResultTab === 'failed'
-                  ? 'border-red-500 text-red-700'
-                  : 'border-transparent text-slate-500 hover:text-slate-700'
+                ? 'border-red-500 text-red-700'
+                : 'border-transparent text-slate-500 hover:text-slate-700'
                 }`}
             >
               <XCircle className="inline h-4 w-4 mr-1" />
