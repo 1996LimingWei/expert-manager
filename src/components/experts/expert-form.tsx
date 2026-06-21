@@ -213,10 +213,10 @@ function CountryPicker({ value, onSelect, onManualInput }: {
   // 根据搜索词过滤国家
   const filtered = search.trim()
     ? SORTED_COUNTRIES.filter(cn =>
-        cn.includes(search) ||
-        COUNTRY_MAP[cn]?.toLowerCase().includes(search.toLowerCase()) ||
-        (PINYIN_MAP[cn] || '').startsWith(search.toUpperCase())
-      )
+      cn.includes(search) ||
+      COUNTRY_MAP[cn]?.toLowerCase().includes(search.toLowerCase()) ||
+      (PINYIN_MAP[cn] || '').startsWith(search.toUpperCase())
+    )
     : SORTED_COUNTRIES;
 
   // 计算当前显示的字母分组
@@ -270,11 +270,10 @@ function CountryPicker({ value, onSelect, onManualInput }: {
               type="button"
               disabled={!activeLetters.has(letter)}
               onClick={() => scrollToLetter(letter)}
-              className={`h-6 w-6 rounded text-xs font-medium transition-colors ${
-                activeLetters.has(letter)
+              className={`h-6 w-6 rounded text-xs font-medium transition-colors ${activeLetters.has(letter)
                   ? 'text-blue-600 hover:bg-blue-50 cursor-pointer'
                   : 'text-slate-300 cursor-default'
-              }`}
+                }`}
             >
               {letter}
             </button>
@@ -304,9 +303,8 @@ function CountryPicker({ value, onSelect, onManualInput }: {
                 <button
                   key={cn}
                   type="button"
-                  className={`w-full rounded-sm px-2 py-1.5 text-left text-sm hover:bg-blue-50 ${
-                    cn === value ? 'bg-blue-50 text-blue-700 font-medium' : ''
-                  }`}
+                  className={`w-full rounded-sm px-2 py-1.5 text-left text-sm hover:bg-blue-50 ${cn === value ? 'bg-blue-50 text-blue-700 font-medium' : ''
+                    }`}
                   onClick={() => { onSelect(cn); setSearch(''); setOpen(false); }}
                 >
                   {cn}
@@ -378,6 +376,7 @@ export function ExpertForm({ expert, onSave, onCancel }: ExpertFormProps) {
             <FormField label="出生年月">
               <Input
                 type="date"
+                max="9999-12-31"
                 value={formData.birth_date ?? ''}
                 onChange={(e) => updateField('birth_date', e.target.value)}
               />
@@ -582,6 +581,7 @@ export function ExpertForm({ expert, onSave, onCancel }: ExpertFormProps) {
             <FormField label="入会时间">
               <Input
                 type="date"
+                max="9999-12-31"
                 value={formData.join_date ?? ''}
                 onChange={(e) => updateField('join_date', e.target.value)}
               />
@@ -596,6 +596,7 @@ export function ExpertForm({ expert, onSave, onCancel }: ExpertFormProps) {
               <FormField label="缴费日期">
                 <Input
                   type="date"
+                  max="9999-12-31"
                   value={formData.payment_date ?? ''}
                   onChange={(e) => updateField('payment_date', e.target.value)}
                 />
@@ -603,6 +604,7 @@ export function ExpertForm({ expert, onSave, onCancel }: ExpertFormProps) {
               <FormField label="到期时间">
                 <Input
                   type="date"
+                  max="9999-12-31"
                   value={formData.expiry_date ?? ''}
                   onChange={(e) => updateField('expiry_date', e.target.value)}
                 />
