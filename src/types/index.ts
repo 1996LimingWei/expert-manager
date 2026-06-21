@@ -12,7 +12,6 @@ export interface Expert {
     salutation_en: string | null;
     salutation_cn: string | null;
     gender_cn: string | null;
-    gender_en: string | null;
     birth_date: string | null;
     organization: string | null;
     organization_en: string | null;

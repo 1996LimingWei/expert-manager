@@ -49,7 +49,6 @@ CREATE TABLE public.experts (
     salutation_en text,
     salutation_cn text,
     gender_cn text,
-    gender_en text,
     birth_date text,
     organization text,
     organization_en text,
