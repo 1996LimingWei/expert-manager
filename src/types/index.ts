@@ -2,6 +2,7 @@
 export interface Expert {
     id: string;
     certificate_no: string | null;
+    passport_no: string | null;
     committee_position: string | null;
     committee_position_en: string | null;
     name_cn: string | null;

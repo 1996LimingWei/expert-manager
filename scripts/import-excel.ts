@@ -39,6 +39,7 @@ const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
 // Excel 列名到数据库字段名的映射
 const columnMapping: Record<string, keyof typeof sampleData> = {
   '证书编号': 'certificate_no',
+  '护照号': 'passport_no',
   '会内职务': 'committee_position',
   'Title_in_Committee': 'committee_position_en',
   '姓名': 'name_cn',
@@ -73,6 +74,7 @@ const columnMapping: Record<string, keyof typeof sampleData> = {
 
 const sampleData = {
   certificate_no: null as string | null,
+  passport_no: null as string | null,
   committee_position: null as string | null,
   committee_position_en: null as string | null,
   name_cn: null as string | null,

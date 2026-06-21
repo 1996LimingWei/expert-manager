@@ -199,7 +199,7 @@ export default function ExpertsPageClient() {
   // 导出 CSV
   const handleExportCSV = () => {
     const headers = [
-      '证书编号', '会内职务', '职务英文',
+      '证书编号', '护照号', '会内职务', '职务英文',
       '姓名', '英文姓名', '姓（英）', '名（英）', '英文称谓', '中文称谓',
       '性别', '出生年月', '单位', '单位英文', '职务', '职称', '职称英文',
       '国籍', 'Country', '电话', '邮箱', '微信',
@@ -208,7 +208,7 @@ export default function ExpertsPageClient() {
     ];
 
     const rows = experts.map((e) => [
-      e.certificate_no,
+      e.certificate_no, e.passport_no,
       e.committee_position, e.committee_position_en, e.name_cn, e.name_en,
       e.last_name_en, e.first_name_en, e.salutation_en, e.salutation_cn,
       e.gender_cn, e.birth_date, e.organization, e.organization_en,
@@ -392,6 +392,7 @@ export default function ExpertsPageClient() {
         size: 120,
       },
       { accessorKey: 'certificate_no', header: SortableHeader('证书编号'), cell: ({ row }) => row.getValue('certificate_no') || '-' },
+      { accessorKey: 'passport_no', header: SortableHeader('护照号'), cell: ({ row }) => row.getValue('passport_no') || '-' },
       { accessorKey: 'committee_position', header: SortableHeader('会内职务'), cell: ({ row }) => (<Badge variant="outline" className="font-normal">{row.getValue('committee_position') || '-'}</Badge>) },
       { accessorKey: 'committee_position_en', header: SortableHeader('Title_in_Committee'), cell: ({ row }) => row.getValue('committee_position_en') || '-' },
       { accessorKey: 'name_cn', header: SortableHeader('姓名'), cell: ({ row }) => row.getValue('name_cn') || '-' },
@@ -754,6 +755,7 @@ export default function ExpertsPageClient() {
               <DetailItem label="会内职务" value={selectedExpert.committee_position} />
               <DetailItem label="职务英文" value={selectedExpert.committee_position_en} />
               <DetailItem label="证书编号" value={selectedExpert.certificate_no} />
+              <DetailItem label="护照号" value={selectedExpert.passport_no} />
               <DetailItem label="单位" value={selectedExpert.organization} />
               <DetailItem label="单位英文" value={selectedExpert.organization_en} />
               <DetailItem label="职务" value={selectedExpert.position} />

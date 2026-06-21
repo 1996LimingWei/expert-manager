@@ -18,6 +18,7 @@ interface ExpertFormProps {
 
 const emptyForm: ExpertFormData = {
   certificate_no: null,
+  passport_no: null,
   committee_position: null,
   committee_position_en: null,
   name_cn: null,
@@ -189,6 +190,12 @@ export function ExpertForm({ expert, onSave, onCancel }: ExpertFormProps) {
               <Input
                 value={formData.certificate_no ?? ''}
                 onChange={(e) => updateField('certificate_no', e.target.value)}
+              />
+            </FormField>
+            <FormField label="护照号">
+              <Input
+                value={formData.passport_no ?? ''}
+                onChange={(e) => updateField('passport_no', e.target.value)}
               />
             </FormField>
           </div>

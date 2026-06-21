@@ -39,6 +39,7 @@ CREATE TABLE public.profiles (
 CREATE TABLE public.experts (
     id uuid NOT NULL PRIMARY KEY DEFAULT gen_random_uuid(),
     certificate_no text,
+    passport_no text,
     committee_position text,
     committee_position_en text,
     name_cn text,
