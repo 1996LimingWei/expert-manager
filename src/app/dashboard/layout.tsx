@@ -37,6 +37,8 @@ import {
     Pencil,
     KeyRound,
     CalendarDays,
+    PanelLeftClose,
+    PanelLeftOpen,
 } from 'lucide-react';
 import Image from 'next/image';
 import { cn } from '@/lib/utils';
@@ -69,6 +71,7 @@ export default function DashboardLayout({
     const [confirmNewPassword, setConfirmNewPassword] = useState('');
     const [savingPassword, setSavingPassword] = useState(false);
     const [sessionsExpanded, setSessionsExpanded] = useState(false);
+    const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
 
     useEffect(() => {
         async function loadProfile() {
@@ -188,8 +191,8 @@ export default function DashboardLayout({
     const SidebarContent = () => (
         <div className="flex h-full flex-col">
             {/* Logo */}
-            <div className="flex h-16 items-center gap-3 px-6">
-                <div className="flex h-9 w-9 items-center justify-center rounded-full overflow-hidden ring-1 ring-blue-400/40">
+            <div className={cn('flex h-16 items-center gap-3', sidebarCollapsed ? 'justify-center px-2' : 'px-6')}>
+                <div className="flex h-9 w-9 items-center justify-center rounded-full overflow-hidden ring-1 ring-blue-400/40 flex-shrink-0">
                     <Image
                         src="/logo.png"
                         alt="ICA"
@@ -198,16 +201,38 @@ export default function DashboardLayout({
                         className="object-cover"
                     />
                 </div>
-                <div>
-                    <h2 className="text-sm font-semibold bg-gradient-to-r from-blue-400 to-cyan-300 bg-clip-text text-transparent">外宾管理</h2>
-                    <p className="text-xs text-slate-400">Expert Manager</p>
-                </div>
+                {!sidebarCollapsed && (
+                    <div className="flex-1">
+                        <h2 className="text-sm font-semibold bg-gradient-to-r from-blue-400 to-cyan-300 bg-clip-text text-transparent">外宾管理</h2>
+                        <p className="text-xs text-slate-400">Expert Manager</p>
+                    </div>
+                )}
+                {!sidebarCollapsed && (
+                    <button
+                        type="button"
+                        onClick={() => setSidebarCollapsed(true)}
+                        className="text-slate-400 hover:text-white transition-colors p-1 rounded hover:bg-white/10"
+                        title="收起菜单"
+                    >
+                        <PanelLeftClose className="h-4 w-4" />
+                    </button>
+                )}
+                {sidebarCollapsed && (
+                    <button
+                        type="button"
+                        onClick={() => setSidebarCollapsed(false)}
+                        className="text-slate-400 hover:text-white transition-colors p-1 rounded hover:bg-white/10"
+                        title="展开菜单"
+                    >
+                        <PanelLeftOpen className="h-4 w-4" />
+                    </button>
+                )}
             </div>
 
             <Separator className="bg-white/10" />
 
             {/* Navigation */}
-            <nav className="flex-1 space-y-1 px-3 py-4">
+            <nav className={cn('flex-1 space-y-1 py-4', sidebarCollapsed ? 'px-2' : 'px-3')}>
                 {filteredNav.map((item) => {
                     const isActive = pathname === item.href && !currentSession;
                     return (
@@ -215,16 +240,18 @@ export default function DashboardLayout({
                             key={item.name}
                             href={item.href}
                             onClick={() => setSidebarOpen(false)}
+                            title={sidebarCollapsed ? item.name : undefined}
                             className={cn(
                                 'flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-all',
+                                sidebarCollapsed && 'justify-center px-2',
                                 isActive
                                     ? 'bg-blue-600/20 text-blue-400 shadow-sm'
                                     : 'text-slate-300 hover:bg-white/5 hover:text-white'
                             )}
                         >
-                            <item.icon className={cn('h-5 w-5', isActive ? 'text-blue-400' : 'text-slate-400')} />
-                            {item.name}
-                            {isActive && <ChevronRight className="ml-auto h-4 w-4" />}
+                            <item.icon className={cn('h-5 w-5 flex-shrink-0', isActive ? 'text-blue-400' : 'text-slate-400')} />
+                            {!sidebarCollapsed && item.name}
+                            {!sidebarCollapsed && isActive && <ChevronRight className="ml-auto h-4 w-4" />}
                         </Link>
                     );
                 })}
@@ -233,19 +260,25 @@ export default function DashboardLayout({
                 <div>
                     <button
                         type="button"
-                        onClick={() => setSessionsExpanded(!sessionsExpanded)}
+                        onClick={() => sidebarCollapsed ? setSidebarCollapsed(false) : setSessionsExpanded(!sessionsExpanded)}
+                        title={sidebarCollapsed ? '往届大会' : undefined}
                         className={cn(
                             'flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-all',
+                            sidebarCollapsed && 'justify-center px-2',
                             currentSession
                                 ? 'bg-blue-600/20 text-blue-400 shadow-sm'
                                 : 'text-slate-300 hover:bg-white/5 hover:text-white'
                         )}
                     >
-                        <CalendarDays className={cn('h-5 w-5', currentSession ? 'text-blue-400' : 'text-slate-400')} />
-                        往届大会
-                        <ChevronDown className={cn('ml-auto h-4 w-4 transition-transform', sessionsExpanded ? 'rotate-0' : '-rotate-90')} />
+                        <CalendarDays className={cn('h-5 w-5 flex-shrink-0', currentSession ? 'text-blue-400' : 'text-slate-400')} />
+                        {!sidebarCollapsed && (
+                            <>
+                                往届大会
+                                <ChevronDown className={cn('ml-auto h-4 w-4 transition-transform', sessionsExpanded ? 'rotate-0' : '-rotate-90')} />
+                            </>
+                        )}
                     </button>
-                    {sessionsExpanded && (
+                    {!sidebarCollapsed && sessionsExpanded && (
                         <div className="ml-5 mt-1 space-y-0.5 border-l border-white/10 pl-4">
                             {ICA_SESSIONS.map((session) => {
                                 const sessionKey = session.replace('大会', '');
@@ -273,20 +306,22 @@ export default function DashboardLayout({
             </nav>
 
             {/* User Info */}
-            <div className="p-4">
-                <div className="flex items-center gap-3 rounded-lg bg-white/5 p-3">
-                    <Avatar className="h-9 w-9 border border-white/20">
+            <div className={cn('p-4', sidebarCollapsed && 'px-2')}>
+                <div className={cn('flex items-center gap-3 rounded-lg bg-white/5 p-3', sidebarCollapsed && 'justify-center p-2')}>
+                    <Avatar className="h-9 w-9 border border-white/20 flex-shrink-0">
                         <AvatarFallback className="bg-gradient-to-br from-blue-500 to-indigo-600 text-white text-xs">
                             {getInitials(profile?.email)}
                         </AvatarFallback>
                     </Avatar>
-                    <div className="flex-1 min-w-0">
-                        <p className="text-sm font-medium text-white truncate">
-                            {profile?.display_name || profile?.email?.split('@')[0]}
-                        </p>
-                        <p className="text-xs text-slate-400 truncate">{profile?.email}</p>
-                    </div>
-                    {profile?.role === 'superadmin' && (
+                    {!sidebarCollapsed && (
+                        <div className="flex-1 min-w-0">
+                            <p className="text-sm font-medium text-white truncate">
+                                {profile?.display_name || profile?.email?.split('@')[0]}
+                            </p>
+                            <p className="text-xs text-slate-400 truncate">{profile?.email}</p>
+                        </div>
+                    )}
+                    {!sidebarCollapsed && profile?.role === 'superadmin' && (
                         <span className="px-2 py-0.5 text-xs font-medium rounded-full bg-blue-500/20 text-blue-300 border border-blue-500/30">
                             超级管理员
                         </span>
@@ -317,14 +352,17 @@ export default function DashboardLayout({
             </Sheet>
 
             {/* Desktop sidebar */}
-            <div className="hidden lg:fixed lg:inset-y-0 lg:flex lg:w-64 lg:flex-col">
+            <div className={cn(
+                'hidden lg:fixed lg:inset-y-0 lg:flex lg:flex-col transition-all duration-300',
+                sidebarCollapsed ? 'lg:w-16' : 'lg:w-64'
+            )}>
                 <div className="flex flex-1 flex-col bg-slate-900 border-r border-slate-800">
                     <SidebarContent />
                 </div>
             </div>
 
             {/* Main content */}
-            <div className="lg:pl-64">
+            <div className={cn('transition-all duration-300', sidebarCollapsed ? 'lg:pl-16' : 'lg:pl-64')}>
                 {/* Top navigation */}
                 <header className="sticky top-0 z-30 flex h-16 items-center gap-4 border-b border-slate-200 bg-white/80 backdrop-blur-md px-4 lg:px-8">
                     {/* Mobile menu button */}

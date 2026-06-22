@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState, useMemo, useRef, useCallback } from 'react';
+import { useEffect, useState, useMemo } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { createClient } from '@/lib/supabase/client';
 import { Expert } from '@/types';
@@ -75,64 +75,6 @@ import {
 import { toast } from 'sonner';
 import { ExpertForm } from '@/components/experts/expert-form';
 
-// 拖拽滚动 Hook
-function useDragScroll() {
-  const ref = useRef<HTMLDivElement>(null);
-  const isDragging = useRef(false);
-  const startX = useRef(0);
-  const scrollLeft = useRef(0);
-
-  const onMouseDown = useCallback((e: React.MouseEvent) => {
-    const el = ref.current;
-    if (!el) return;
-    // 忽略按钮、链接、输入框等可点击元素
-    const tag = (e.target as HTMLElement).tagName;
-    if (['BUTTON', 'A', 'INPUT', 'SELECT', 'LABEL'].includes(tag)) return;
-    isDragging.current = true;
-    startX.current = e.pageX - el.offsetLeft;
-    scrollLeft.current = el.scrollLeft;
-    el.style.cursor = 'grabbing';
-    el.style.userSelect = 'none';
-  }, []);
-
-  const onMouseMove = useCallback((e: React.MouseEvent) => {
-    if (!isDragging.current) return;
-    const el = ref.current;
-    if (!el) return;
-    e.preventDefault();
-    const x = e.pageX - el.offsetLeft;
-    const walk = (x - startX.current) * 1.5;
-    el.scrollLeft = scrollLeft.current - walk;
-  }, []);
-
-  const onMouseUp = useCallback(() => {
-    const el = ref.current;
-    if (!el) return;
-    isDragging.current = false;
-    el.style.cursor = '';
-    el.style.userSelect = '';
-  }, []);
-
-  return { ref, onMouseDown, onMouseMove, onMouseUp, onMouseLeave: onMouseUp };
-}
-
-// 拖拽滚动表格容器
-function DragScrollTable({ children }: { children: React.ReactNode }) {
-  const drag = useDragScroll();
-  return (
-    <div
-      ref={drag.ref}
-      className="overflow-x-auto cursor-grab"
-      onMouseDown={drag.onMouseDown}
-      onMouseMove={drag.onMouseMove}
-      onMouseUp={drag.onMouseUp}
-      onMouseLeave={drag.onMouseLeave}
-    >
-      {children}
-    </div>
-  );
-}
-
 export default function ExpertsPageClient() {
   const supabase = createClient();
   const searchParams = useSearchParams();
@@ -197,6 +139,12 @@ export default function ExpertsPageClient() {
   useEffect(() => {
     loadExperts();
   }, []);
+
+  // 滚动表格的辅助函数
+  const scrollTable = (direction: 'left' | 'right') => {
+    const el = document.querySelector('[data-slot="table-container"]');
+    if (el) el.scrollBy({ left: direction === 'left' ? -300 : 300, behavior: 'smooth' });
+  };
 
   const loadExperts = async () => {
     setLoading(true);
@@ -701,8 +649,29 @@ export default function ExpertsPageClient() {
 
         {/* 表格 */}
         <CardContent className="p-0">
-          <DragScrollTable>
-            <Table>
+          {/* 顶部滚动控制栏 */}
+          <div className="flex items-center justify-between px-4 py-1.5 bg-slate-50 border-b border-slate-200">
+            <span className="text-xs text-slate-500">← 左右滑动查看更多列 →</span>
+            <div className="flex items-center gap-1">
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-6 w-6"
+                onClick={() => scrollTable('left')}
+              >
+                <ChevronLeft className="h-4 w-4" />
+              </Button>
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-6 w-6"
+                onClick={() => scrollTable('right')}
+              >
+                <ChevronRight className="h-4 w-4" />
+              </Button>
+            </div>
+          </div>
+          <Table>
               <TableHeader>
                 {table.getHeaderGroups().map((headerGroup) => (
                   <TableRow key={headerGroup.id} className="bg-slate-50">
@@ -771,7 +740,6 @@ export default function ExpertsPageClient() {
                 )}
               </TableBody>
             </Table>
-          </DragScrollTable>
 
           {/* 分页 */}
           <div className="flex flex-col md:flex-row items-center justify-between gap-4 px-6 py-4 border-t border-slate-200">
