@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { usePathname, useRouter } from 'next/navigation';
+import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { createClient } from '@/lib/supabase/client';
 import { Profile } from '@/types';
 import { Button } from '@/components/ui/button';
@@ -32,9 +32,11 @@ import {
     LogOut,
     Menu,
     ChevronRight,
+    ChevronDown,
     Home,
     Pencil,
     KeyRound,
+    CalendarDays,
 } from 'lucide-react';
 import Image from 'next/image';
 import { cn } from '@/lib/utils';
@@ -66,6 +68,7 @@ export default function DashboardLayout({
     const [newPassword, setNewPassword] = useState('');
     const [confirmNewPassword, setConfirmNewPassword] = useState('');
     const [savingPassword, setSavingPassword] = useState(false);
+    const [sessionsExpanded, setSessionsExpanded] = useState(false);
 
     useEffect(() => {
         async function loadProfile() {
@@ -174,6 +177,14 @@ export default function DashboardLayout({
         return email.charAt(0).toUpperCase();
     };
 
+    const ICA_SESSIONS = ['第七届大会', '第六届大会', '第五届大会', '第四届大会', '第三届大会', '第二届大会', '第一届大会'];
+
+    // 检查当前是否有选中的届次
+    const layoutSearchParams = useSearchParams();
+    const currentSession = pathname === '/dashboard/experts'
+        ? layoutSearchParams.get('session')
+        : null;
+
     const SidebarContent = () => (
         <div className="flex h-full flex-col">
             {/* Logo */}
@@ -198,7 +209,7 @@ export default function DashboardLayout({
             {/* Navigation */}
             <nav className="flex-1 space-y-1 px-3 py-4">
                 {filteredNav.map((item) => {
-                    const isActive = pathname === item.href;
+                    const isActive = pathname === item.href && !currentSession;
                     return (
                         <Link
                             key={item.name}
@@ -217,6 +228,48 @@ export default function DashboardLayout({
                         </Link>
                     );
                 })}
+
+                {/* 往届大会 */}
+                <div>
+                    <button
+                        type="button"
+                        onClick={() => setSessionsExpanded(!sessionsExpanded)}
+                        className={cn(
+                            'flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-all',
+                            currentSession
+                                ? 'bg-blue-600/20 text-blue-400 shadow-sm'
+                                : 'text-slate-300 hover:bg-white/5 hover:text-white'
+                        )}
+                    >
+                        <CalendarDays className={cn('h-5 w-5', currentSession ? 'text-blue-400' : 'text-slate-400')} />
+                        往届大会
+                        <ChevronDown className={cn('ml-auto h-4 w-4 transition-transform', sessionsExpanded ? 'rotate-0' : '-rotate-90')} />
+                    </button>
+                    {sessionsExpanded && (
+                        <div className="ml-5 mt-1 space-y-0.5 border-l border-white/10 pl-4">
+                            {ICA_SESSIONS.map((session) => {
+                                const sessionKey = session.replace('大会', '');
+                                const isActiveSession = currentSession === sessionKey;
+                                return (
+                                    <Link
+                                        key={session}
+                                        href={`/dashboard/experts?session=${encodeURIComponent(sessionKey)}`}
+                                        onClick={() => setSidebarOpen(false)}
+                                        className={cn(
+                                            'flex items-center gap-2 rounded-lg px-3 py-2 text-sm transition-all',
+                                            isActiveSession
+                                                ? 'bg-blue-600/20 text-blue-400'
+                                                : 'text-slate-400 hover:bg-white/5 hover:text-white'
+                                        )}
+                                    >
+                                        {session}
+                                        {isActiveSession && <ChevronRight className="ml-auto h-4 w-4" />}
+                                    </Link>
+                                );
+                            })}
+                        </div>
+                    )}
+                </div>
             </nav>
 
             {/* User Info */}
@@ -286,7 +339,10 @@ export default function DashboardLayout({
                         <Home className="h-4 w-4" />
                         <span>/</span>
                         <span className="text-slate-900 font-medium">
-                            {filteredNav.find((item) => item.href === pathname)?.name || 'Dashboard'}
+                            {currentSession
+                                ? `${currentSession}大会`
+                                : (filteredNav.find((item) => item.href === pathname)?.name || 'Dashboard')
+                            }
                         </span>
                     </div>
 

@@ -1,6 +1,7 @@
 'use client';
 
-import { useEffect, useState, useMemo } from 'react';
+import { useEffect, useState, useMemo, useRef, useCallback } from 'react';
+import { useSearchParams, useRouter } from 'next/navigation';
 import { createClient } from '@/lib/supabase/client';
 import { Expert } from '@/types';
 import {
@@ -69,16 +70,89 @@ import {
   Users,
   CheckCircle2,
   XCircle,
+  X,
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { ExpertForm } from '@/components/experts/expert-form';
 
+// 拖拽滚动 Hook
+function useDragScroll() {
+  const ref = useRef<HTMLDivElement>(null);
+  const isDragging = useRef(false);
+  const startX = useRef(0);
+  const scrollLeft = useRef(0);
+
+  const onMouseDown = useCallback((e: React.MouseEvent) => {
+    const el = ref.current;
+    if (!el) return;
+    // 忽略按钮、链接、输入框等可点击元素
+    const tag = (e.target as HTMLElement).tagName;
+    if (['BUTTON', 'A', 'INPUT', 'SELECT', 'LABEL'].includes(tag)) return;
+    isDragging.current = true;
+    startX.current = e.pageX - el.offsetLeft;
+    scrollLeft.current = el.scrollLeft;
+    el.style.cursor = 'grabbing';
+    el.style.userSelect = 'none';
+  }, []);
+
+  const onMouseMove = useCallback((e: React.MouseEvent) => {
+    if (!isDragging.current) return;
+    const el = ref.current;
+    if (!el) return;
+    e.preventDefault();
+    const x = e.pageX - el.offsetLeft;
+    const walk = (x - startX.current) * 1.5;
+    el.scrollLeft = scrollLeft.current - walk;
+  }, []);
+
+  const onMouseUp = useCallback(() => {
+    const el = ref.current;
+    if (!el) return;
+    isDragging.current = false;
+    el.style.cursor = '';
+    el.style.userSelect = '';
+  }, []);
+
+  return { ref, onMouseDown, onMouseMove, onMouseUp, onMouseLeave: onMouseUp };
+}
+
+// 拖拽滚动表格容器
+function DragScrollTable({ children }: { children: React.ReactNode }) {
+  const drag = useDragScroll();
+  return (
+    <div
+      ref={drag.ref}
+      className="overflow-x-auto cursor-grab"
+      onMouseDown={drag.onMouseDown}
+      onMouseMove={drag.onMouseMove}
+      onMouseUp={drag.onMouseUp}
+      onMouseLeave={drag.onMouseLeave}
+    >
+      {children}
+    </div>
+  );
+}
+
 export default function ExpertsPageClient() {
   const supabase = createClient();
+  const searchParams = useSearchParams();
+  const router = useRouter();
+  const sessionFilter = searchParams.get('session') || '';
   const [experts, setExperts] = useState<Expert[]>([]);
   const [loading, setLoading] = useState(true);
   const [sorting, setSorting] = useState<SortingState>([]);
-  const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
+  const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>(
+    sessionFilter ? [{ id: 'ica_participation', value: sessionFilter }] : []
+  );
+
+  // 当 URL 参数变化时同步过滤器
+  useEffect(() => {
+    if (sessionFilter) {
+      setColumnFilters([{ id: 'ica_participation', value: sessionFilter }]);
+    } else {
+      setColumnFilters([]);
+    }
+  }, [sessionFilter]);
   const [globalFilter, setGlobalFilter] = useState('');
   const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({
     committee_position_en: false,
@@ -448,7 +522,17 @@ export default function ExpertsPageClient() {
           return (<Badge variant={isPaid ? 'default' : 'destructive'} className="font-normal">{status}</Badge>);
         }
       },
-      { accessorKey: 'ica_participation', header: SortableHeader('参加ICA情况'), cell: ({ row }) => row.getValue('ica_participation') || '-' },
+      {
+        accessorKey: 'ica_participation',
+        header: SortableHeader('参加ICA情况'),
+        cell: ({ row }) => row.getValue('ica_participation') || '-',
+        filterFn: (row, columnId, filterValue) => {
+          const cellValue = row.getValue(columnId);
+          if (!cellValue || typeof cellValue !== 'string') return false;
+          if (!filterValue) return true;
+          return cellValue.split(',').map(s => s.trim()).includes(filterValue);
+        },
+      },
       { accessorKey: 'awards', header: SortableHeader('获奖情况'), cell: ({ row }) => row.getValue('awards') || '-' },
       { accessorKey: 'speeches', header: SortableHeader('演讲情况'), cell: ({ row }) => row.getValue('speeches') || '-' },
       { accessorKey: 'cooperation_projects', header: SortableHeader('合作项目'), cell: ({ row }) => row.getValue('cooperation_projects') || '-' },
@@ -522,6 +606,18 @@ export default function ExpertsPageClient() {
           <h1 className="text-2xl font-bold text-slate-900 flex items-center gap-2">
             <Users className="h-6 w-6 text-blue-600" />
             专家列表
+            {sessionFilter && (
+              <span className="inline-flex items-center gap-1 rounded-full bg-blue-100 px-3 py-1 text-sm font-medium text-blue-700">
+                {sessionFilter}大会
+                <button
+                  type="button"
+                  className="ml-1 rounded-full p-0.5 hover:bg-blue-200"
+                  onClick={() => router.push('/dashboard/experts')}
+                >
+                  <X className="h-3.5 w-3.5" />
+                </button>
+              </span>
+            )}
           </h1>
           <p className="text-slate-500 mt-1">
             共 {experts.length} 位专家 · 当前显示 {table.getFilteredRowModel().rows.length} 条
@@ -605,7 +701,7 @@ export default function ExpertsPageClient() {
 
         {/* 表格 */}
         <CardContent className="p-0">
-          <div className="overflow-x-auto">
+          <DragScrollTable>
             <Table>
               <TableHeader>
                 {table.getHeaderGroups().map((headerGroup) => (
@@ -675,7 +771,7 @@ export default function ExpertsPageClient() {
                 )}
               </TableBody>
             </Table>
-          </div>
+          </DragScrollTable>
 
           {/* 分页 */}
           <div className="flex flex-col md:flex-row items-center justify-between gap-4 px-6 py-4 border-t border-slate-200">
