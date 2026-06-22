@@ -120,6 +120,7 @@
 @layer base {
   * {
     @apply border-border outline-ring/50;
+    font-family: var(--font-inter), "PingFang SC", "Microsoft YaHei", "Inter", system-ui, -apple-system, sans-serif;
   }
 
   body {
@@ -128,6 +129,12 @@
 
   html {
     @apply font-sans;
+  }
+
+  /* 表格专用字体：更纤细清爽 */
+  table {
+    font-family: var(--font-inter), "PingFang SC", sans-serif;
+    font-size: 13px;
   }
 }
 
