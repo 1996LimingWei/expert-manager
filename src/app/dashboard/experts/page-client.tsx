@@ -91,7 +91,6 @@ export default function ExpertsPageClient() {
     organization_en: false,
     professional_title: false,
     professional_title_en: false,
-    nationality_en: false,
     phone: false,
     email: false,
     wechat: false,
@@ -388,18 +387,27 @@ export default function ExpertsPageClient() {
             </Button>
           </div>
         ),
-        size: 120,
+        size: 100,
+        meta: { sticky: true, stickyLeft: 0 },
+        enableHiding: false,
+      },
+      {
+        accessorKey: 'name_cn',
+        header: SortableHeader('姓名'),
+        cell: ({ row }) => (
+          <div className="min-w-[120px]">
+            <div className="font-medium text-slate-900">{row.getValue('name_cn') || '-'}</div>
+            <div className="text-xs text-slate-500 truncate">{row.original.name_en || '-'}</div>
+          </div>
+        ),
+        size: 180,
+        meta: { sticky: true, stickyLeft: 100 },
+        enableHiding: false,
       },
       { accessorKey: 'certificate_no', header: SortableHeader('证书编号'), cell: ({ row }) => row.getValue('certificate_no') || '-' },
       { accessorKey: 'passport_no', header: SortableHeader('护照号'), cell: ({ row }) => row.getValue('passport_no') || '-' },
       { accessorKey: 'committee_position', header: SortableHeader('会内职务'), cell: ({ row }) => (<Badge variant="outline" className="font-normal">{row.getValue('committee_position') || '-'}</Badge>) },
       { accessorKey: 'committee_position_en', header: SortableHeader('Title_in_Committee'), cell: ({ row }) => row.getValue('committee_position_en') || '-' },
-      { accessorKey: 'name_cn', header: SortableHeader('姓名'), cell: ({ row }) => row.getValue('name_cn') || '-' },
-      {
-        accessorKey: 'name_en',
-        header: SortableHeader('英文姓名'),
-        cell: ({ row }) => (<span className="font-medium text-slate-900">{row.getValue('name_en') || '-'}</span>),
-      },
       { accessorKey: 'last_name_en', header: SortableHeader('姓（英）'), cell: ({ row }) => row.getValue('last_name_en') || '-' },
       { accessorKey: 'first_name_en', header: SortableHeader('名（英）'), cell: ({ row }) => row.getValue('first_name_en') || '-' },
       { accessorKey: 'salutation_en', header: SortableHeader('英文称谓'), cell: ({ row }) => row.getValue('salutation_en') || '-' },
@@ -414,13 +422,13 @@ export default function ExpertsPageClient() {
       {
         accessorKey: 'nationality_cn',
         header: SortableHeader('国籍'),
-        cell: ({ row }) => {
-          const cn = row.getValue('nationality_cn') as string;
-          const en = row.getValue('nationality_en') as string;
-          return <span>{cn || en || '-'}</span>;
-        },
+        cell: ({ row }) => (
+          <div>
+            <div>{row.getValue('nationality_cn') || '-'}</div>
+            <div className="text-xs text-slate-500">{row.original.nationality_en || ''}</div>
+          </div>
+        ),
       },
-      { accessorKey: 'nationality_en', header: SortableHeader('Country') },
       { accessorKey: 'phone', header: SortableHeader('电话'), cell: ({ row }) => row.getValue('phone') || '-' },
       {
         accessorKey: 'email', header: SortableHeader('邮箱'), cell: ({ row }) => {
@@ -484,7 +492,6 @@ export default function ExpertsPageClient() {
         organization_en: false,
         professional_title: false,
         professional_title_en: false,
-        nationality_en: false,
         phone: false,
         email: false,
         wechat: false,
@@ -566,14 +573,28 @@ export default function ExpertsPageClient() {
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end" className="w-48 max-h-80 overflow-y-auto">
                 {(() => {
-                  const headerLabels: Record<string, string> = { name_en: '英文姓名', nationality_cn: '国籍' };
+                  const headerLabels: Record<string, string> = {
+                    certificate_no: '证书编号', passport_no: '护照号',
+                    committee_position: '会内职务', committee_position_en: '会内职务英文',
+                    last_name_en: '姓（英）', first_name_en: '名（英）',
+                    salutation_en: '英文称谓', salutation_cn: '中文称谓',
+                    gender_cn: '性别', birth_date: '出生年月',
+                    organization: '单位', organization_en: '单位英文',
+                    position: '职务', professional_title: '职称', professional_title_en: '职称英文',
+                    nationality_cn: '国籍',
+                    phone: '电话', email: '邮箱', wechat: '微信',
+                    join_date: '入会时间', payment_date: '缴费日期',
+                    expiry_date: '到期时间', payment_status: '缴费情况',
+                    ica_participation: '参加ICA情况', awards: '获奖情况',
+                    speeches: '演讲情况', cooperation_projects: '合作项目', notes: '备注',
+                  };
                   return table.getAllColumns().filter((col) => col.getCanHide()).map((col) => (
                     <DropdownMenuCheckboxItem
                       key={col.id}
                       checked={col.getIsVisible()}
                       onCheckedChange={(value) => col.toggleVisibility(!!value)}
                     >
-                      {typeof col.columnDef.header === 'string' ? col.columnDef.header : (headerLabels[col.id] || col.id)}
+                      {headerLabels[col.id] || col.id}
                     </DropdownMenuCheckboxItem>
                   ));
                 })()}
@@ -589,13 +610,25 @@ export default function ExpertsPageClient() {
               <TableHeader>
                 {table.getHeaderGroups().map((headerGroup) => (
                   <TableRow key={headerGroup.id} className="bg-slate-50">
-                    {headerGroup.headers.map((header) => (
-                      <TableHead key={header.id} style={{ width: header.getSize() }}>
-                        {header.isPlaceholder
-                          ? null
-                          : flexRender(header.column.columnDef.header, header.getContext())}
-                      </TableHead>
-                    ))}
+                    {headerGroup.headers.map((header) => {
+                      const meta = header.column.columnDef.meta as { sticky?: boolean; stickyLeft?: number } | undefined;
+                      const isSticky = meta?.sticky;
+                      const stickyLeft = meta?.stickyLeft ?? 0;
+                      return (
+                        <TableHead
+                          key={header.id}
+                          style={{
+                            minWidth: header.getSize(),
+                            ...(isSticky ? { position: 'sticky', left: stickyLeft, zIndex: 20, background: '#f8fafc' } : {}),
+                          }}
+                          className={isSticky ? 'border-r border-slate-200' : ''}
+                        >
+                          {header.isPlaceholder
+                            ? null
+                            : flexRender(header.column.columnDef.header, header.getContext())}
+                        </TableHead>
+                      );
+                    })}
                   </TableRow>
                 ))}
               </TableHeader>
@@ -604,17 +637,30 @@ export default function ExpertsPageClient() {
                   table.getRowModel().rows.map((row) => (
                     <TableRow
                       key={row.id}
-                      className="hover:bg-blue-50/50 cursor-pointer transition-colors"
+                      className="group hover:bg-blue-50/50 cursor-pointer transition-colors"
                       onClick={() => {
                         setSelectedExpert(row.original);
                         setDetailDialogOpen(true);
                       }}
                     >
-                      {row.getVisibleCells().map((cell) => (
-                        <TableCell key={cell.id} className="py-3">
-                          {flexRender(cell.column.columnDef.cell, cell.getContext())}
-                        </TableCell>
-                      ))}
+                      {row.getVisibleCells().map((cell) => {
+                        const meta = cell.column.columnDef.meta as { sticky?: boolean; stickyLeft?: number } | undefined;
+                        const isSticky = meta?.sticky;
+                        const stickyLeft = meta?.stickyLeft ?? 0;
+                        return (
+                          <TableCell
+                            key={cell.id}
+                            className={`py-3 ${isSticky ? 'border-r border-slate-100 bg-white group-hover:bg-blue-50' : ''}`}
+                            style={isSticky ? {
+                              position: 'sticky',
+                              left: stickyLeft,
+                              zIndex: 10,
+                            } : undefined}
+                          >
+                            {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                          </TableCell>
+                        );
+                      })}
                     </TableRow>
                   ))
                 ) : (

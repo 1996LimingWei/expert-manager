@@ -102,6 +102,9 @@ const COUNTRY_MAP: Record<string, string> = {
 const COUNTRY_CN_LIST = Object.keys(COUNTRY_MAP);
 const MANUAL_INPUT = '__manual__';
 
+// ICA届次选项（从第七届到第一届）
+const ICA_OPTIONS = ['第七届', '第六届', '第五届', '第四届', '第三届', '第二届', '第一届'];
+
 // 拼音首字母映射
 const PINYIN_MAP: Record<string, string> = {
   '中国': 'Z', '阿富汗': 'A', '阿尔巴尼亚': 'A', '阿尔及利亚': 'A',
@@ -271,8 +274,8 @@ function CountryPicker({ value, onSelect, onManualInput }: {
               disabled={!activeLetters.has(letter)}
               onClick={() => scrollToLetter(letter)}
               className={`h-6 w-6 rounded text-xs font-medium transition-colors ${activeLetters.has(letter)
-                  ? 'text-blue-600 hover:bg-blue-50 cursor-pointer'
-                  : 'text-slate-300 cursor-default'
+                ? 'text-blue-600 hover:bg-blue-50 cursor-pointer'
+                : 'text-slate-300 cursor-default'
                 }`}
             >
               {letter}
@@ -314,6 +317,72 @@ function CountryPicker({ value, onSelect, onManualInput }: {
             </div>
           ))}
         </div>
+      </PopoverContent>
+    </Popover>
+  );
+}
+
+// ICA多选组件
+function IcaMultiSelect({ value, onChange }: { value: string; onChange: (v: string) => void }) {
+  const [open, setOpen] = useState(false);
+  const selected = value ? value.split(',').filter(Boolean) : [];
+
+  const toggle = (item: string) => {
+    const newSelected = selected.includes(item)
+      ? selected.filter(s => s !== item)
+      : [...selected, item];
+    // 保持届次顺序（第一届到第七届）
+    const ordered = ICA_OPTIONS.filter(opt => newSelected.includes(opt));
+    onChange(ordered.join(','));
+  };
+
+  const displayText = selected.length > 0
+    ? [...selected].sort((a, b) => {
+      const ai = ICA_OPTIONS.indexOf(a);
+      const bi = ICA_OPTIONS.indexOf(b);
+      return ai - bi;
+    }).join(', ')
+    : '请选择';
+
+  return (
+    <Popover open={open} onOpenChange={setOpen}>
+      <PopoverTrigger
+        type="button"
+        className="flex h-9 w-full items-center justify-between rounded-md border border-slate-200 bg-transparent px-3 py-2 text-sm shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-1"
+      >
+        <span className={selected.length > 0 ? '' : 'text-slate-400'}>
+          {displayText}
+        </span>
+        <ChevronDown className="ml-2 h-4 w-4 opacity-50" />
+      </PopoverTrigger>
+      <PopoverContent className="w-[200px] p-2" align="start">
+        <div className="space-y-1">
+          {ICA_OPTIONS.map(opt => (
+            <label
+              key={opt}
+              className="flex cursor-pointer items-center gap-2 rounded px-2 py-1.5 text-sm hover:bg-slate-100"
+            >
+              <input
+                type="checkbox"
+                checked={selected.includes(opt)}
+                onChange={() => toggle(opt)}
+                className="h-4 w-4 rounded border-slate-300 text-blue-600 focus:ring-blue-500"
+              />
+              {opt}
+            </label>
+          ))}
+        </div>
+        {selected.length > 0 && (
+          <div className="mt-1 border-t pt-1">
+            <button
+              type="button"
+              className="w-full rounded px-2 py-1 text-xs text-slate-500 hover:bg-slate-100"
+              onClick={() => onChange('')}
+            >
+              清除选择
+            </button>
+          </div>
+        )}
       </PopoverContent>
     </Popover>
   );
@@ -625,9 +694,9 @@ export function ExpertForm({ expert, onSave, onCancel }: ExpertFormProps) {
             <h3 className="text-sm font-medium text-slate-700">ICA 相关信息</h3>
             <div className="grid grid-cols-1 gap-4">
               <FormField label="参加ICA情况">
-                <Input
+                <IcaMultiSelect
                   value={formData.ica_participation ?? ''}
-                  onChange={(e) => updateField('ica_participation', e.target.value)}
+                  onChange={(v) => updateField('ica_participation', v || null)}
                 />
               </FormField>
               <FormField label="获奖情况">
