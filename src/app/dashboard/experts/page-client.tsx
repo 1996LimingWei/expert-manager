@@ -672,74 +672,74 @@ export default function ExpertsPageClient() {
             </div>
           </div>
           <Table>
-              <TableHeader>
-                {table.getHeaderGroups().map((headerGroup) => (
-                  <TableRow key={headerGroup.id} className="bg-slate-50">
-                    {headerGroup.headers.map((header) => {
-                      const meta = header.column.columnDef.meta as { sticky?: boolean; stickyLeft?: number } | undefined;
+            <TableHeader>
+              {table.getHeaderGroups().map((headerGroup) => (
+                <TableRow key={headerGroup.id} className="bg-slate-50">
+                  {headerGroup.headers.map((header) => {
+                    const meta = header.column.columnDef.meta as { sticky?: boolean; stickyLeft?: number } | undefined;
+                    const isSticky = meta?.sticky;
+                    const stickyLeft = meta?.stickyLeft ?? 0;
+                    return (
+                      <TableHead
+                        key={header.id}
+                        style={{
+                          minWidth: header.getSize(),
+                          ...(isSticky ? { position: 'sticky', left: stickyLeft, zIndex: 20, background: '#f8fafc' } : {}),
+                        }}
+                        className={isSticky ? 'border-r border-slate-200' : ''}
+                      >
+                        {header.isPlaceholder
+                          ? null
+                          : flexRender(header.column.columnDef.header, header.getContext())}
+                      </TableHead>
+                    );
+                  })}
+                </TableRow>
+              ))}
+            </TableHeader>
+            <TableBody>
+              {table.getRowModel().rows.length ? (
+                table.getRowModel().rows.map((row) => (
+                  <TableRow
+                    key={row.id}
+                    className="group hover:bg-blue-50/50 cursor-pointer transition-colors"
+                    onClick={() => {
+                      setSelectedExpert(row.original);
+                      setDetailDialogOpen(true);
+                    }}
+                  >
+                    {row.getVisibleCells().map((cell) => {
+                      const meta = cell.column.columnDef.meta as { sticky?: boolean; stickyLeft?: number } | undefined;
                       const isSticky = meta?.sticky;
                       const stickyLeft = meta?.stickyLeft ?? 0;
                       return (
-                        <TableHead
-                          key={header.id}
-                          style={{
-                            minWidth: header.getSize(),
-                            ...(isSticky ? { position: 'sticky', left: stickyLeft, zIndex: 20, background: '#f8fafc' } : {}),
-                          }}
-                          className={isSticky ? 'border-r border-slate-200' : ''}
+                        <TableCell
+                          key={cell.id}
+                          className={`py-3 ${isSticky ? 'border-r border-slate-100 bg-white group-hover:bg-blue-50' : ''}`}
+                          style={isSticky ? {
+                            position: 'sticky',
+                            left: stickyLeft,
+                            zIndex: 10,
+                          } : undefined}
                         >
-                          {header.isPlaceholder
-                            ? null
-                            : flexRender(header.column.columnDef.header, header.getContext())}
-                        </TableHead>
+                          {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                        </TableCell>
                       );
                     })}
                   </TableRow>
-                ))}
-              </TableHeader>
-              <TableBody>
-                {table.getRowModel().rows.length ? (
-                  table.getRowModel().rows.map((row) => (
-                    <TableRow
-                      key={row.id}
-                      className="group hover:bg-blue-50/50 cursor-pointer transition-colors"
-                      onClick={() => {
-                        setSelectedExpert(row.original);
-                        setDetailDialogOpen(true);
-                      }}
-                    >
-                      {row.getVisibleCells().map((cell) => {
-                        const meta = cell.column.columnDef.meta as { sticky?: boolean; stickyLeft?: number } | undefined;
-                        const isSticky = meta?.sticky;
-                        const stickyLeft = meta?.stickyLeft ?? 0;
-                        return (
-                          <TableCell
-                            key={cell.id}
-                            className={`py-3 ${isSticky ? 'border-r border-slate-100 bg-white group-hover:bg-blue-50' : ''}`}
-                            style={isSticky ? {
-                              position: 'sticky',
-                              left: stickyLeft,
-                              zIndex: 10,
-                            } : undefined}
-                          >
-                            {flexRender(cell.column.columnDef.cell, cell.getContext())}
-                          </TableCell>
-                        );
-                      })}
-                    </TableRow>
-                  ))
-                ) : (
-                  <TableRow>
-                    <TableCell colSpan={columns.length} className="h-32 text-center">
-                      <div className="flex flex-col items-center gap-2">
-                        <AlertCircle className="h-8 w-8 text-slate-300" />
-                        <p className="text-slate-500">没有找到匹配的专家信息</p>
-                      </div>
-                    </TableCell>
-                  </TableRow>
-                )}
-              </TableBody>
-            </Table>
+                ))
+              ) : (
+                <TableRow>
+                  <TableCell colSpan={columns.length} className="h-32 text-center">
+                    <div className="flex flex-col items-center gap-2">
+                      <AlertCircle className="h-8 w-8 text-slate-300" />
+                      <p className="text-slate-500">没有找到匹配的专家信息</p>
+                    </div>
+                  </TableCell>
+                </TableRow>
+              )}
+            </TableBody>
+          </Table>
 
           {/* 分页 */}
           <div className="flex flex-col md:flex-row items-center justify-between gap-4 px-6 py-4 border-t border-slate-200">
