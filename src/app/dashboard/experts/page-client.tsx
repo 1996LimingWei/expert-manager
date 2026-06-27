@@ -400,16 +400,16 @@ export default function ExpertsPageClient() {
         id: 'actions',
         header: '操作',
         cell: ({ row }) => (
-          <div className="flex items-center gap-1">
-            <Button variant="ghost" size="icon" className="h-8 w-8" onClick={(e) => { e.stopPropagation(); setEditingExpert(row.original); setFormDialogOpen(true); }}>
-              <Pencil className="h-4 w-4 text-blue-500" />
+          <div className="flex items-center gap-0.5">
+            <Button variant="ghost" size="icon" className="h-7 w-7" onClick={(e) => { e.stopPropagation(); setEditingExpert(row.original); setFormDialogOpen(true); }}>
+              <Pencil className="h-3.5 w-3.5 text-blue-500" />
             </Button>
-            <Button variant="ghost" size="icon" className="h-8 w-8" onClick={(e) => { e.stopPropagation(); setDeletingExpert(row.original); setDeleteDialogOpen(true); }}>
-              <Trash2 className="h-4 w-4 text-red-500" />
+            <Button variant="ghost" size="icon" className="h-7 w-7" onClick={(e) => { e.stopPropagation(); setDeletingExpert(row.original); setDeleteDialogOpen(true); }}>
+              <Trash2 className="h-3.5 w-3.5 text-red-500" />
             </Button>
           </div>
         ),
-        size: 100,
+        size: 70,
         meta: { sticky: true, stickyLeft: 0 },
         enableHiding: false,
       },
@@ -417,13 +417,13 @@ export default function ExpertsPageClient() {
         accessorKey: 'name_cn',
         header: SortableHeader('姓名'),
         cell: ({ row }) => (
-          <div className="min-w-[120px]">
+          <div className="min-w-[100px] sm:min-w-[120px]">
             <div className="font-medium text-slate-900">{row.getValue('name_cn') || '-'}</div>
             <div className="text-xs text-slate-500 truncate">{row.original.name_en || '-'}</div>
           </div>
         ),
-        size: 180,
-        meta: { sticky: true, stickyLeft: 100 },
+        size: 140,
+        meta: { sticky: true, stickyLeft: 70 },
         enableHiding: false,
       },
       { accessorKey: 'certificate_no', header: SortableHeader('证书编号'), cell: ({ row }) => row.getValue('certificate_no') || '-' },
@@ -547,15 +547,15 @@ export default function ExpertsPageClient() {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 sm:space-y-6">
       {/* 页面标题 */}
-      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-slate-900 flex items-center gap-2">
-            <Users className="h-6 w-6 text-blue-600" />
+          <h1 className="text-xl sm:text-2xl font-bold text-slate-900 flex items-center gap-2 flex-wrap">
+            <Users className="h-5 w-5 sm:h-6 sm:w-6 text-blue-600" />
             专家列表
             {sessionFilter && (
-              <span className="inline-flex items-center gap-1 rounded-full bg-blue-100 px-3 py-1 text-sm font-medium text-blue-700">
+              <span className="inline-flex items-center gap-1 rounded-full bg-blue-100 px-2.5 py-0.5 text-xs sm:text-sm font-medium text-blue-700">
                 {sessionFilter}大会
                 <button
                   type="button"
@@ -567,18 +567,20 @@ export default function ExpertsPageClient() {
               </span>
             )}
           </h1>
-          <p className="text-slate-500 mt-1">
+          <p className="text-slate-500 mt-1 text-sm">
             共 {experts.length} 位专家 · 当前显示 {table.getFilteredRowModel().rows.length} 条
           </p>
         </div>
-        <div className="flex items-center gap-2 flex-wrap">
+        <div className="grid grid-cols-3 gap-2 sm:flex sm:items-center sm:gap-2 sm:flex-wrap">
           <Button onClick={() => setUploadDialogOpen(true)} variant="outline" size="sm">
-            <Upload className="mr-2 h-4 w-4" />
-            上传专家信息
+            <Upload className="sm:mr-2 h-4 w-4" />
+            <span className="hidden sm:inline">上传专家信息</span>
+            <span className="sm:hidden">上传</span>
           </Button>
           <Button onClick={handleExportCSV} variant="outline" size="sm">
-            <Download className="mr-2 h-4 w-4" />
-            导出 CSV
+            <Download className="sm:mr-2 h-4 w-4" />
+            <span className="hidden sm:inline">导出 CSV</span>
+            <span className="sm:hidden">导出</span>
           </Button>
           <Button
             onClick={() => {
@@ -588,8 +590,9 @@ export default function ExpertsPageClient() {
             size="sm"
             className="bg-blue-600 hover:bg-blue-700"
           >
-            <Plus className="mr-2 h-4 w-4" />
-            添加专家
+            <Plus className="sm:mr-2 h-4 w-4" />
+            <span className="hidden sm:inline">添加专家</span>
+            <span className="sm:hidden">添加</span>
           </Button>
         </div>
       </div>
@@ -597,9 +600,9 @@ export default function ExpertsPageClient() {
       {/* 工具栏 */}
       <Card>
         <CardHeader className="pb-4">
-          <div className="flex flex-col md:flex-row gap-4 items-start md:items-center">
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
             {/* 搜索框 */}
-            <div className="relative flex-1 max-w-sm">
+            <div className="relative flex-1 sm:max-w-sm">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
               <Input
                 placeholder="搜索姓名、邮箱、单位、国籍..."
@@ -650,8 +653,9 @@ export default function ExpertsPageClient() {
         {/* 表格 */}
         <CardContent className="p-0">
           {/* 顶部滚动控制栏 */}
-          <div className="flex items-center justify-between px-4 py-1.5 bg-slate-50 border-b border-slate-200">
-            <span className="text-xs text-slate-500">← 左右滑动查看更多列 →</span>
+          <div className="flex items-center justify-between px-3 py-1.5 bg-slate-50 border-b border-slate-200">
+            <span className="text-xs text-slate-500 hidden sm:inline">← 左右滑动查看更多列 →</span>
+            <span className="text-xs text-slate-500 sm:hidden">左右滑动</span>
             <div className="flex items-center gap-1">
               <Button
                 variant="ghost"
@@ -851,7 +855,7 @@ export default function ExpertsPageClient() {
             </DialogDescription>
           </DialogHeader>
           {selectedExpert && (
-            <div className="grid grid-cols-2 gap-4 py-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 py-4">
               <DetailItem label="英文姓名" value={selectedExpert.name_en} />
               <DetailItem label="姓名" value={selectedExpert.name_cn} />
               <DetailItem label="英文称谓" value={selectedExpert.salutation_en} />

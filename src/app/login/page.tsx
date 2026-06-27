@@ -183,7 +183,7 @@ export default function LoginPage() {
     };
 
     return (
-        <div className="min-h-screen flex items-center justify-center relative overflow-hidden bg-gradient-to-br from-slate-900 via-blue-950 to-slate-900">
+        <div className="min-h-screen flex items-center justify-center relative overflow-hidden bg-gradient-to-br from-slate-900 via-blue-950 to-slate-900 pt-safe pb-safe">
             {/* 背景装饰 */}
             <div className="absolute inset-0 overflow-hidden">
                 <div className="absolute -top-40 -right-40 w-80 h-80 bg-blue-500/20 rounded-full blur-3xl animate-pulse" />
@@ -194,10 +194,10 @@ export default function LoginPage() {
             {/* 网格背景 */}
             <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.02)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.02)_1px,transparent_1px)] bg-[size:64px_64px]" />
 
-            <div className="relative z-10 w-full max-w-md px-4">
+            <div className="relative z-10 w-full max-w-md px-4 py-8 sm:py-0">
                 {/* Logo 和标题 */}
-                <div className="text-center mb-8">
-                    <div className="inline-flex items-center justify-center w-20 h-20 rounded-full overflow-hidden shadow-lg shadow-blue-500/30 mb-4 ring-2 ring-blue-400/30">
+                <div className="text-center mb-6 sm:mb-8">
+                    <div className="inline-flex items-center justify-center w-16 h-16 sm:w-20 sm:h-20 rounded-full overflow-hidden shadow-lg shadow-blue-500/30 mb-3 sm:mb-4 ring-2 ring-blue-400/30">
                         <Image
                             src="/logo.png"
                             alt="ICA Logo"
@@ -206,8 +206,8 @@ export default function LoginPage() {
                             className="object-cover"
                         />
                     </div>
-                    <h1 className="text-3xl font-bold bg-gradient-to-r from-blue-400 via-cyan-300 to-blue-500 bg-clip-text text-transparent tracking-tight">外宾管理系统</h1>
-                    <p className="text-slate-400 mt-2">Expert Management System</p>
+                    <h1 className="text-2xl sm:text-3xl font-bold bg-gradient-to-r from-blue-400 via-cyan-300 to-blue-500 bg-clip-text text-transparent tracking-tight">外宾管理系统</h1>
+                    <p className="text-slate-400 mt-1 sm:mt-2 text-sm sm:text-base">Expert Management System</p>
                 </div>
 
                 <Card className="backdrop-blur-xl bg-white/5 border-white/10 shadow-2xl">
@@ -503,7 +503,7 @@ export default function LoginPage() {
                 </Card>
 
                 {/* 底部说明 */}
-                <p className="text-center text-slate-500 text-xs mt-6">
+                <p className="text-center text-slate-500 text-xs mt-6 pb-4">
                     仅限授权管理员访问 · 如有疑问请联系系统管理员
                 </p>
             </div>

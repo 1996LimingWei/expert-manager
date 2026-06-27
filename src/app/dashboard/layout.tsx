@@ -7,7 +7,7 @@ import { createClient } from '@/lib/supabase/client';
 import { Profile } from '@/types';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
-import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
+import { Sheet, SheetContent } from '@/components/ui/sheet';
 import { Separator } from '@/components/ui/separator';
 import {
     DropdownMenu,
@@ -60,6 +60,7 @@ export default function DashboardLayout({
     const [profile, setProfile] = useState<Profile | null>(null);
     const [sidebarOpen, setSidebarOpen] = useState(false);
     const [loading, setLoading] = useState(true);
+    const [isMobile, setIsMobile] = useState(false);
     const [editNameOpen, setEditNameOpen] = useState(false);
     const [newDisplayName, setNewDisplayName] = useState('');
     const [savingName, setSavingName] = useState(false);
@@ -188,10 +189,25 @@ export default function DashboardLayout({
         ? layoutSearchParams.get('session')
         : null;
 
-    const SidebarContent = () => (
+    // 检测移动端
+    useEffect(() => {
+        const checkMobile = () => setIsMobile(window.innerWidth < 1024);
+        checkMobile();
+        window.addEventListener('resize', checkMobile);
+        return () => window.removeEventListener('resize', checkMobile);
+    }, []);
+
+    // 移动端打开侧栏时重置收起状态
+    useEffect(() => {
+        if (sidebarOpen && isMobile) {
+            setSidebarCollapsed(false);
+        }
+    }, [sidebarOpen, isMobile]);
+
+    const SidebarContent = ({ isMobileSidebar = false }: { isMobileSidebar?: boolean } = {}) => (
         <div className="flex h-full flex-col">
             {/* Logo */}
-            <div className={cn('flex h-16 items-center gap-3', sidebarCollapsed ? 'justify-center px-2' : 'px-6')}>
+            <div className={cn('flex h-16 items-center gap-3', !isMobileSidebar && sidebarCollapsed ? 'justify-center px-2' : 'px-6')}>
                 <div className="flex h-9 w-9 items-center justify-center rounded-full overflow-hidden ring-1 ring-blue-400/40 flex-shrink-0">
                     <Image
                         src="/logo.png"
@@ -207,7 +223,8 @@ export default function DashboardLayout({
                         <p className="text-xs text-slate-400">Expert Manager</p>
                     </div>
                 )}
-                {!sidebarCollapsed && (
+                {/* 收起/展开按钮 - 移动端侧栏不显示 */}
+                {!isMobileSidebar && !sidebarCollapsed && (
                     <button
                         type="button"
                         onClick={() => setSidebarCollapsed(true)}
@@ -217,7 +234,7 @@ export default function DashboardLayout({
                         <PanelLeftClose className="h-4 w-4" />
                     </button>
                 )}
-                {sidebarCollapsed && (
+                {!isMobileSidebar && sidebarCollapsed && (
                     <button
                         type="button"
                         onClick={() => setSidebarCollapsed(false)}
@@ -232,7 +249,7 @@ export default function DashboardLayout({
             <Separator className="bg-white/10" />
 
             {/* Navigation */}
-            <nav className={cn('flex-1 space-y-1 py-4', sidebarCollapsed ? 'px-2' : 'px-3')}>
+            <nav className={cn('flex-1 space-y-1 py-4', !isMobileSidebar && sidebarCollapsed ? 'px-2' : 'px-3')}>
                 {filteredNav.map((item) => {
                     const isActive = pathname === item.href && !currentSession;
                     return (
@@ -243,15 +260,15 @@ export default function DashboardLayout({
                             title={sidebarCollapsed ? item.name : undefined}
                             className={cn(
                                 'flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-all',
-                                sidebarCollapsed && 'justify-center px-2',
+                                !isMobileSidebar && sidebarCollapsed && 'justify-center px-2',
                                 isActive
                                     ? 'bg-blue-600/20 text-blue-400 shadow-sm'
                                     : 'text-slate-300 hover:bg-white/5 hover:text-white'
                             )}
                         >
                             <item.icon className={cn('h-5 w-5 flex-shrink-0', isActive ? 'text-blue-400' : 'text-slate-400')} />
-                            {!sidebarCollapsed && item.name}
-                            {!sidebarCollapsed && isActive && <ChevronRight className="ml-auto h-4 w-4" />}
+                            {(!isMobileSidebar || isMobileSidebar) && (!isMobileSidebar ? !sidebarCollapsed : true) && item.name}
+                            {(!isMobileSidebar ? !sidebarCollapsed : true) && isActive && <ChevronRight className="ml-auto h-4 w-4" />}
                         </Link>
                     );
                 })}
@@ -260,25 +277,33 @@ export default function DashboardLayout({
                 <div>
                     <button
                         type="button"
-                        onClick={() => sidebarCollapsed ? setSidebarCollapsed(false) : setSessionsExpanded(!sessionsExpanded)}
-                        title={sidebarCollapsed ? '往届大会' : undefined}
+                        onClick={() => {
+                            if (isMobileSidebar) {
+                                setSessionsExpanded(!sessionsExpanded);
+                            } else if (sidebarCollapsed) {
+                                setSidebarCollapsed(false);
+                            } else {
+                                setSessionsExpanded(!sessionsExpanded);
+                            }
+                        }}
+                        title={!isMobileSidebar && sidebarCollapsed ? '往届大会' : undefined}
                         className={cn(
                             'flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-all',
-                            sidebarCollapsed && 'justify-center px-2',
+                            !isMobileSidebar && sidebarCollapsed && 'justify-center px-2',
                             currentSession
                                 ? 'bg-blue-600/20 text-blue-400 shadow-sm'
                                 : 'text-slate-300 hover:bg-white/5 hover:text-white'
                         )}
                     >
                         <CalendarDays className={cn('h-5 w-5 flex-shrink-0', currentSession ? 'text-blue-400' : 'text-slate-400')} />
-                        {!sidebarCollapsed && (
+                        {(isMobileSidebar || !sidebarCollapsed) && (
                             <>
                                 往届大会
                                 <ChevronDown className={cn('ml-auto h-4 w-4 transition-transform', sessionsExpanded ? 'rotate-0' : '-rotate-90')} />
                             </>
                         )}
                     </button>
-                    {!sidebarCollapsed && sessionsExpanded && (
+                    {(isMobileSidebar || !sidebarCollapsed) && sessionsExpanded && (
                         <div className="ml-5 mt-1 space-y-0.5 border-l border-white/10 pl-4">
                             {ICA_SESSIONS.map((session) => {
                                 const sessionKey = session.replace('大会', '');
@@ -306,14 +331,14 @@ export default function DashboardLayout({
             </nav>
 
             {/* User Info */}
-            <div className={cn('p-4', sidebarCollapsed && 'px-2')}>
-                <div className={cn('flex items-center gap-3 rounded-lg bg-white/5 p-3', sidebarCollapsed && 'justify-center p-2')}>
+            <div className={cn('p-4', !isMobileSidebar && sidebarCollapsed && 'px-2')}>
+                <div className={cn('flex items-center gap-3 rounded-lg bg-white/5 p-3', !isMobileSidebar && sidebarCollapsed && 'justify-center p-2')}>
                     <Avatar className="h-9 w-9 border border-white/20 flex-shrink-0">
                         <AvatarFallback className="bg-gradient-to-br from-blue-500 to-indigo-600 text-white text-xs">
                             {getInitials(profile?.email)}
                         </AvatarFallback>
                     </Avatar>
-                    {!sidebarCollapsed && (
+                    {(isMobileSidebar || !sidebarCollapsed) && (
                         <div className="flex-1 min-w-0">
                             <p className="text-sm font-medium text-white truncate">
                                 {profile?.display_name || profile?.email?.split('@')[0]}
@@ -321,7 +346,7 @@ export default function DashboardLayout({
                             <p className="text-xs text-slate-400 truncate">{profile?.email}</p>
                         </div>
                     )}
-                    {!sidebarCollapsed && profile?.role === 'superadmin' && (
+                    {(isMobileSidebar || !sidebarCollapsed) && profile?.role === 'superadmin' && (
                         <span className="px-2 py-0.5 text-xs font-medium rounded-full bg-blue-500/20 text-blue-300 border border-blue-500/30">
                             超级管理员
                         </span>
@@ -345,9 +370,9 @@ export default function DashboardLayout({
     return (
         <div className="min-h-screen bg-slate-50">
             {/* Mobile sidebar */}
-            <Sheet open={sidebarOpen} onOpenChange={setSidebarOpen}>
-                <SheetContent side="left" className="w-64 p-0 bg-slate-900 border-slate-800">
-                    <SidebarContent />
+            <Sheet open={sidebarOpen} onOpenChange={setSidebarOpen} disablePointerDismissal>
+                <SheetContent side="left" className="w-64 p-0 bg-slate-900 border-slate-800" showCloseButton={false}>
+                    <SidebarContent isMobileSidebar />
                 </SheetContent>
             </Sheet>
 
@@ -366,11 +391,13 @@ export default function DashboardLayout({
                 {/* Top navigation */}
                 <header className="sticky top-0 z-30 flex h-16 items-center gap-4 border-b border-slate-200 bg-white/80 backdrop-blur-md px-4 lg:px-8">
                     {/* Mobile menu button */}
-                    <Sheet open={sidebarOpen} onOpenChange={setSidebarOpen}>
-                        <SheetTrigger className="inline-flex items-center justify-center size-9 rounded-md hover:bg-slate-100 lg:hidden">
-                            <Menu className="h-5 w-5" />
-                        </SheetTrigger>
-                    </Sheet>
+                    <button
+                        type="button"
+                        className="inline-flex items-center justify-center size-9 rounded-md hover:bg-slate-100 lg:hidden"
+                        onClick={() => setSidebarOpen(true)}
+                    >
+                        <Menu className="h-5 w-5" />
+                    </button>
 
                     {/* Breadcrumb */}
                     <div className="flex items-center gap-2 text-sm text-slate-500">
@@ -439,7 +466,7 @@ export default function DashboardLayout({
                 </header>
 
                 {/* Page content */}
-                <main className="p-4 lg:p-8">
+                <main className="p-3 sm:p-4 lg:p-8">
                     {children}
                 </main>
             </div>

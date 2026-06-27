@@ -136,6 +136,18 @@
     font-family: var(--font-inter), "PingFang SC", sans-serif;
     font-size: 13px;
   }
+
+  /* 移动端触摸优化 */
+  @media (max-width: 640px) {
+    table {
+      font-size: 12px;
+    }
+  }
+
+  /* 移动端点击高亮 */
+  a, button {
+    -webkit-tap-highlight-color: transparent;
+  }
 }
 
 /* Custom scrollbar */
