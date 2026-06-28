@@ -368,10 +368,10 @@ export default function DashboardLayout({
     }
 
     return (
-        <div className="min-h-screen bg-slate-50">
+        <div className="min-h-screen main-bg-gradient">
             {/* Mobile sidebar */}
             <Sheet open={sidebarOpen} onOpenChange={setSidebarOpen} disablePointerDismissal>
-                <SheetContent side="left" className="w-64 p-0 bg-slate-900 border-slate-800" showCloseButton={false}>
+                <SheetContent side="left" className="w-64 p-0 sidebar-aurora border-slate-800/50" showCloseButton={false}>
                     <SidebarContent isMobileSidebar />
                 </SheetContent>
             </Sheet>
@@ -381,7 +381,7 @@ export default function DashboardLayout({
                 'hidden lg:fixed lg:inset-y-0 lg:flex lg:flex-col transition-all duration-300',
                 sidebarCollapsed ? 'lg:w-16' : 'lg:w-64'
             )}>
-                <div className="flex flex-1 flex-col bg-slate-900 border-r border-slate-800">
+                <div className="flex flex-1 flex-col sidebar-aurora border-r border-white/5">
                     <SidebarContent />
                 </div>
             </div>
@@ -389,7 +389,7 @@ export default function DashboardLayout({
             {/* Main content */}
             <div className={cn('transition-all duration-300', sidebarCollapsed ? 'lg:pl-16' : 'lg:pl-64')}>
                 {/* Top navigation */}
-                <header className="sticky top-0 z-30 flex h-16 items-center gap-4 border-b border-slate-200 bg-white/80 backdrop-blur-md px-4 lg:px-8">
+                <header className="sticky top-0 z-30 flex h-16 items-center gap-4 border-b border-slate-200/60 bg-white/50 backdrop-blur-xl px-4 lg:px-8">
                     {/* Mobile menu button */}
                     <button
                         type="button"

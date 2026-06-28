@@ -229,7 +229,7 @@ export default function UsersPageClient() {
 
         {/* 邮箱白名单 */}
         <TabsContent value="whitelist">
-          <Card>
+          <Card className="glass-card overflow-hidden border-0">
             <CardHeader>
               <div className="flex items-center justify-between">
                 <div>
@@ -327,7 +327,7 @@ export default function UsersPageClient() {
 
         {/* 已注册用户 */}
         <TabsContent value="users">
-          <Card>
+          <Card className="glass-card overflow-hidden border-0">
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <Users className="h-5 w-5" />

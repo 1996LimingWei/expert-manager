@@ -598,7 +598,7 @@ export default function ExpertsPageClient() {
       </div>
 
       {/* 工具栏 */}
-      <Card>
+      <Card className="glass-card overflow-hidden border-0">
         <CardHeader className="pb-4">
           <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
             {/* 搜索框 */}
@@ -653,7 +653,7 @@ export default function ExpertsPageClient() {
         {/* 表格 */}
         <CardContent className="p-0">
           {/* 顶部滚动控制栏 */}
-          <div className="flex items-center justify-between px-3 py-1.5 bg-slate-50 border-b border-slate-200">
+          <div className="flex items-center justify-between px-3 py-1.5 bg-white/30 border-b border-slate-200/50">
             <span className="text-xs text-slate-500 hidden sm:inline">← 左右滑动查看更多列 →</span>
             <span className="text-xs text-slate-500 sm:hidden">左右滑动</span>
             <div className="flex items-center gap-1">
@@ -678,7 +678,7 @@ export default function ExpertsPageClient() {
           <Table>
             <TableHeader>
               {table.getHeaderGroups().map((headerGroup) => (
-                <TableRow key={headerGroup.id} className="bg-slate-50">
+                <TableRow key={headerGroup.id} className="bg-white/30">
                   {headerGroup.headers.map((header) => {
                     const meta = header.column.columnDef.meta as { sticky?: boolean; stickyLeft?: number } | undefined;
                     const isSticky = meta?.sticky;
@@ -688,9 +688,9 @@ export default function ExpertsPageClient() {
                         key={header.id}
                         style={{
                           minWidth: header.getSize(),
-                          ...(isSticky ? { position: 'sticky', left: stickyLeft, zIndex: 20, background: '#f8fafc' } : {}),
+                          ...(isSticky ? { position: 'sticky', left: stickyLeft, zIndex: 20, background: 'rgba(238, 242, 255, 0.88)', backdropFilter: 'blur(16px)', boxShadow: '2px 0 4px -2px rgba(0,0,0,0.06)' } : {}),
                         }}
-                        className={isSticky ? 'border-r border-slate-200' : ''}
+                        className={isSticky ? '' : ''}
                       >
                         {header.isPlaceholder
                           ? null
@@ -719,11 +719,14 @@ export default function ExpertsPageClient() {
                       return (
                         <TableCell
                           key={cell.id}
-                          className={`py-3 ${isSticky ? 'border-r border-slate-100 bg-white group-hover:bg-blue-50' : ''}`}
+                          className={`py-3 ${isSticky ? 'group-hover:bg-blue-50/60' : ''}`}
                           style={isSticky ? {
                             position: 'sticky',
                             left: stickyLeft,
                             zIndex: 10,
+                            background: 'rgba(244, 246, 252, 0.92)',
+                            backdropFilter: 'blur(16px)',
+                            boxShadow: '2px 0 4px -2px rgba(0,0,0,0.05)',
                           } : undefined}
                         >
                           {flexRender(cell.column.columnDef.cell, cell.getContext())}
