@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { createClient } from '@/lib/supabase/client';
 import { Button } from '@/components/ui/button';
@@ -9,7 +9,7 @@ import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { toast } from 'sonner';
-import { Loader2, Mail, Lock, ArrowRight, KeyRound } from 'lucide-react';
+import { Loader2, Mail, Lock, ArrowRight, KeyRound, RefreshCw, ShieldCheck } from 'lucide-react';
 import Image from 'next/image';
 
 export default function LoginPage() {
@@ -20,6 +20,81 @@ export default function LoginPage() {
     const [loginEmail, setLoginEmail] = useState('');
     const [loginPassword, setLoginPassword] = useState('');
     const [loginLoading, setLoginLoading] = useState(false);
+
+    // 验证码状态
+    const [captchaCode, setCaptchaCode] = useState('');
+    const [captchaInput, setCaptchaInput] = useState('');
+    const canvasRef = useRef<HTMLCanvasElement>(null);
+
+    // 生成随机4位验证码
+    const generateCaptcha = useCallback(() => {
+        const chars = '23456789ABCDEFGHJKLMNPQRSTUVWXYZ';
+        let code = '';
+        for (let i = 0; i < 4; i++) {
+            code += chars.charAt(Math.floor(Math.random() * chars.length));
+        }
+        setCaptchaCode(code);
+        setCaptchaInput('');
+    }, []);
+
+    // 绘制验证码 Canvas
+    const drawCaptcha = useCallback(() => {
+        const canvas = canvasRef.current;
+        if (!canvas || !captchaCode) return;
+        const ctx = canvas.getContext('2d');
+        if (!ctx) return;
+
+        const w = canvas.width;
+        const h = canvas.height;
+
+        // 背景
+        ctx.fillStyle = '#1e293b';
+        ctx.fillRect(0, 0, w, h);
+
+        // 干扰线
+        for (let i = 0; i < 6; i++) {
+            ctx.strokeStyle = `rgba(${Math.random() * 150 + 100}, ${Math.random() * 150 + 100}, ${Math.random() * 200 + 55}, 0.5)`;
+            ctx.lineWidth = 1;
+            ctx.beginPath();
+            ctx.moveTo(Math.random() * w, Math.random() * h);
+            ctx.lineTo(Math.random() * w, Math.random() * h);
+            ctx.stroke();
+        }
+
+        // 干扰点
+        for (let i = 0; i < 30; i++) {
+            ctx.fillStyle = `rgba(${Math.random() * 200 + 55}, ${Math.random() * 200 + 55}, ${Math.random() * 200 + 55}, 0.6)`;
+            ctx.beginPath();
+            ctx.arc(Math.random() * w, Math.random() * h, 1.5, 0, Math.PI * 2);
+            ctx.fill();
+        }
+
+        // 绘制文字
+        const colors = ['#60a5fa', '#a78bfa', '#34d399', '#f472b6', '#fbbf24'];
+        for (let i = 0; i < captchaCode.length; i++) {
+            ctx.save();
+            ctx.font = `bold ${22 + Math.random() * 6}px "Inter", monospace`;
+            ctx.fillStyle = colors[Math.floor(Math.random() * colors.length)];
+            ctx.textBaseline = 'middle';
+            const x = 16 + i * 28;
+            const y = h / 2 + (Math.random() - 0.5) * 10;
+            const angle = (Math.random() - 0.5) * 0.5;
+            ctx.translate(x, y);
+            ctx.rotate(angle);
+            ctx.fillText(captchaCode[i], 0, 0);
+            ctx.restore();
+        }
+    }, [captchaCode]);
+
+    // 初始化验证码
+    useEffect(() => {
+        generateCaptcha();
+    }, [generateCaptcha]);
+
+    // 验证码代码变化时重绘
+    useEffect(() => {
+        drawCaptcha();
+    }, [drawCaptcha]);
 
     // 注册状态
     const [registerEmail, setRegisterEmail] = useState('');
@@ -67,6 +142,11 @@ export default function LoginPage() {
         e.preventDefault();
         if (!loginEmail || !loginPassword) {
             toast.error('请填写邮箱和密码');
+            return;
+        }
+        if (captchaInput.toUpperCase() !== captchaCode.toUpperCase()) {
+            toast.error('验证码错误，请重新输入');
+            generateCaptcha();
             return;
         }
 
@@ -263,6 +343,39 @@ export default function LoginPage() {
                                                     onChange={(e) => setLoginPassword(e.target.value)}
                                                     className="pl-10 bg-white/5 border-white/10 text-white placeholder:text-slate-500 focus:border-blue-500 focus:ring-blue-500/20"
                                                 />
+                                            </div>
+                                        </div>
+                                        <div className="space-y-2">
+                                            <Label className="text-slate-300">验证码</Label>
+                                            <div className="flex items-center gap-2">
+                                                <div className="relative flex-1">
+                                                    <ShieldCheck className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
+                                                    <Input
+                                                        type="text"
+                                                        maxLength={4}
+                                                        placeholder="请输入验证码"
+                                                        value={captchaInput}
+                                                        onChange={(e) => setCaptchaInput(e.target.value)}
+                                                        className="pl-10 pr-3 bg-white/5 border-white/10 text-white placeholder:text-slate-500 focus:border-blue-500 focus:ring-blue-500/20 tracking-[0.3em] font-mono text-center"
+                                                        autoComplete="off"
+                                                    />
+                                                </div>
+                                                <canvas
+                                                    ref={canvasRef}
+                                                    width={140}
+                                                    height={44}
+                                                    className="rounded-lg cursor-pointer border border-white/10 flex-shrink-0"
+                                                    onClick={generateCaptcha}
+                                                    title="点击刷新验证码"
+                                                />
+                                                <button
+                                                    type="button"
+                                                    onClick={generateCaptcha}
+                                                    className="p-2 rounded-lg bg-white/5 border border-white/10 text-slate-400 hover:text-white hover:bg-white/10 transition-colors flex-shrink-0"
+                                                    title="刷新验证码"
+                                                >
+                                                    <RefreshCw className="w-4 h-4" />
+                                                </button>
                                             </div>
                                         </div>
                                     </CardContent>

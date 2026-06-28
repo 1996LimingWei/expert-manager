@@ -199,24 +199,31 @@ table tbody tr {
   0% {
     background-position: 0% 50%;
   }
+
   25% {
     background-position: 50% 0%;
   }
+
   50% {
     background-position: 100% 50%;
   }
+
   75% {
     background-position: 50% 100%;
   }
+
   100% {
     background-position: 0% 50%;
   }
 }
 
 @keyframes aurora-pulse {
-  0%, 100% {
+
+  0%,
+  100% {
     opacity: 0.6;
   }
+
   50% {
     opacity: 1;
   }
@@ -233,7 +240,7 @@ table tbody tr {
   inset: -80%;
   width: 260%;
   height: 260%;
-  background: 
+  background:
     radial-gradient(ellipse at 20% 50%, rgba(56, 189, 248, 0.30) 0%, transparent 50%),
     radial-gradient(ellipse at 80% 20%, rgba(168, 85, 247, 0.25) 0%, transparent 50%),
     radial-gradient(ellipse at 40% 80%, rgba(236, 72, 153, 0.20) 0%, transparent 50%),
@@ -251,17 +258,15 @@ table tbody tr {
   content: '';
   position: absolute;
   inset: 0;
-  background: linear-gradient(
-    180deg,
-    transparent 0%,
-    rgba(15, 23, 42, 0.3) 50%,
-    transparent 100%
-  );
+  background: linear-gradient(180deg,
+      transparent 0%,
+      rgba(15, 23, 42, 0.3) 50%,
+      transparent 100%);
   pointer-events: none;
   z-index: 0;
 }
 
-.sidebar-aurora > * {
+.sidebar-aurora>* {
   position: relative;
   z-index: 1;
 }
@@ -293,7 +298,7 @@ table tbody tr {
   z-index: 1;
 }
 
-.glass-card > * {
+.glass-card>* {
   position: relative;
   z-index: 2;
 }
