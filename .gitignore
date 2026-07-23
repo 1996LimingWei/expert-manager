@@ -42,3 +42,13 @@ Thumbs.db
 # Excel source file (keep in parent directory)
 *.xlsx
 *.xls
+
+# OpenNext
+.open-next
+
+# wrangler files
+.wrangler
+.dev.vars*
+!.dev.vars.example
+
+!.env.example
