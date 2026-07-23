@@ -197,6 +197,7 @@ const emptyForm: ExpertFormData = {
   expiry_date: null,
   payment_status: null,
   ica_participation: null,
+  co_initiator_status: null,
   awards: null,
   speeches: null,
   cooperation_projects: null,
@@ -697,6 +698,12 @@ export function ExpertForm({ expert, onSave, onCancel }: ExpertFormProps) {
                 <IcaMultiSelect
                   value={formData.ica_participation ?? ''}
                   onChange={(v) => updateField('ica_participation', v || null)}
+                />
+              </FormField>
+              <FormField label="联合发起人情况">
+                <IcaMultiSelect
+                  value={formData.co_initiator_status ?? ''}
+                  onChange={(v) => updateField('co_initiator_status', v || null)}
                 />
               </FormField>
               <FormField label="获奖情况">

@@ -224,7 +224,7 @@ export default function ExpertsPageClient() {
       '性别', '出生年月', '单位', '单位英文', '职务', '职称', '职称英文',
       '国籍', 'Country', '电话', '邮箱', '微信',
       '入会时间', '缴费日期', '到期时间', '缴费情况',
-      '参加ICA情况', '获奖情况', '演讲情况', '合作项目', '备注'
+      '参加ICA情况', '联合发起人情况', '获奖情况', '演讲情况', '合作项目', '备注'
     ];
 
     const rows = experts.map((e) => [
@@ -235,7 +235,7 @@ export default function ExpertsPageClient() {
       e.position, e.professional_title, e.professional_title_en,
       e.nationality_cn, e.nationality_en, e.phone, e.email, e.wechat,
       e.join_date, e.payment_date, e.expiry_date, e.payment_status,
-      e.ica_participation, e.awards, e.speeches, e.cooperation_projects, e.notes
+      e.ica_participation, e.co_initiator_status, e.awards, e.speeches, e.cooperation_projects, e.notes
     ]);
 
     const csvContent = [headers, ...rows]
@@ -293,7 +293,7 @@ export default function ExpertsPageClient() {
         '电话': 'phone', '邮箱': 'email', '微信': 'wechat',
         '入会时间': 'join_date', '缴费日期': 'payment_date',
         '到期时间': 'expiry_date', '缴费情况': 'payment_status',
-        '参加ICA情况': 'ica_participation', '获奖情况': 'awards',
+        '参加ICA情况': 'ica_participation', '联合发起人情况': 'co_initiator_status', '获奖情况': 'awards',
         '演讲情况': 'speeches', '合作项目': 'cooperation_projects',
         '备注': 'notes',
       };
@@ -481,6 +481,17 @@ export default function ExpertsPageClient() {
           return cellValue.split(',').map(s => s.trim()).includes(filterValue);
         },
       },
+      {
+        accessorKey: 'co_initiator_status',
+        header: SortableHeader('联合发起人情况'),
+        cell: ({ row }) => row.getValue('co_initiator_status') || '-',
+        filterFn: (row, columnId, filterValue) => {
+          const cellValue = row.getValue(columnId);
+          if (!cellValue || typeof cellValue !== 'string') return false;
+          if (!filterValue) return true;
+          return cellValue.split(',').map(s => s.trim()).includes(filterValue);
+        },
+      },
       { accessorKey: 'awards', header: SortableHeader('获奖情况'), cell: ({ row }) => row.getValue('awards') || '-' },
       { accessorKey: 'speeches', header: SortableHeader('演讲情况'), cell: ({ row }) => row.getValue('speeches') || '-' },
       { accessorKey: 'cooperation_projects', header: SortableHeader('合作项目'), cell: ({ row }) => row.getValue('cooperation_projects') || '-' },
@@ -632,7 +643,7 @@ export default function ExpertsPageClient() {
                     phone: '电话', email: '邮箱', wechat: '微信',
                     join_date: '入会时间', payment_date: '缴费日期',
                     expiry_date: '到期时间', payment_status: '缴费情况',
-                    ica_participation: '参加ICA情况', awards: '获奖情况',
+                    ica_participation: '参加ICA情况', co_initiator_status: '联合发起人情况', awards: '获奖情况',
                     speeches: '演讲情况', cooperation_projects: '合作项目', notes: '备注',
                   };
                   return table.getAllColumns().filter((col) => col.getCanHide()).map((col) => (
@@ -882,6 +893,7 @@ export default function ExpertsPageClient() {
               <DetailItem label="到期时间" value={selectedExpert.expiry_date} />
               <DetailItem label="缴费情况" value={selectedExpert.payment_status} />
               <DetailItem label="参加ICA情况" value={selectedExpert.ica_participation} full />
+              <DetailItem label="联合发起人情况" value={selectedExpert.co_initiator_status} full />
               <DetailItem label="获奖情况" value={selectedExpert.awards} full />
               <DetailItem label="演讲情况" value={selectedExpert.speeches} full />
               <DetailItem label="合作项目" value={selectedExpert.cooperation_projects} full />

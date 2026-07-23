@@ -28,6 +28,7 @@ export interface Expert {
     expiry_date: string | null;
     payment_status: string | null;
     ica_participation: string | null;
+    co_initiator_status: string | null;
     awards: string | null;
     speeches: string | null;
     cooperation_projects: string | null;
